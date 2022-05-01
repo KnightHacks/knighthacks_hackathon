@@ -1,0 +1,54 @@
+directive @goModel(model: String, models: [String!]) on OBJECT
+    | INPUT_OBJECT
+    | SCALAR
+    | ENUM
+    | INTERFACE
+    | UNION
+
+directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION
+    | FIELD_DEFINITION
+
+extend type Event @key(fields: "id") {
+    id: ID! @external
+    hackathon: Hackathon!
+}
+
+extend type User @key(fields: "id") {
+    id: ID! @external
+    hackathons: [Hackathon!]!
+}
+
+extend type Sponsor @key(fields: "id") {
+    id: ID! @external
+    hackathons: [Hackathon!]!
+}
+
+type Hackathon {
+    id: ID!
+    term: Term!
+    attendees: [User!]!
+    sponsors: [Sponsor!]!
+    events: [Event!]!
+}
+
+enum Semester {
+    FALL
+    SPRING
+    SUMMER
+}
+
+type Term {
+    year: Int!
+    semester: Semester!
+}
+
+input HackathonFilterInput {
+    year: Int!
+    semester: Semester
+}
+
+type Query {
+    currentHackathon: Hackathon
+    hackathons(input: HackathonFilterInput!): [Hackathon!]!
+    getHackathon(id: ID!): Hackathon
+}
