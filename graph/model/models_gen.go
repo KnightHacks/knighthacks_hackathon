@@ -16,16 +16,35 @@ type Event struct {
 func (Event) IsEntity() {}
 
 type Hackathon struct {
-	ID        string     `json:"id"`
-	Term      *Term      `json:"term"`
-	Attendees []*User    `json:"attendees"`
-	Sponsors  []*Sponsor `json:"sponsors"`
-	Events    []*Event   `json:"events"`
+	ID        string          `json:"id"`
+	Term      *Term           `json:"term"`
+	Attendees []*User         `json:"attendees"`
+	Sponsors  []*Sponsor      `json:"sponsors"`
+	Events    []*Event        `json:"events"`
+	Status    HackathonStatus `json:"status"`
 }
 
-type HackathonFilterInput struct {
+func (Hackathon) IsEntity() {}
+
+type HackathonCreateInput struct {
+	Year     int      `json:"year"`
+	Semester Semester `json:"semester"`
+	Sponsors []string `json:"sponsors"`
+	Events   []string `json:"events"`
+}
+
+type HackathonFilter struct {
 	Year     int       `json:"year"`
 	Semester *Semester `json:"semester"`
+}
+
+type HackathonUpdateInput struct {
+	Year            *int      `json:"year"`
+	Semester        *Semester `json:"semester"`
+	MoreSponsors    []string  `json:"moreSponsors"`
+	DeletedSponsors []string  `json:"deletedSponsors"`
+	MoreEvents      []string  `json:"moreEvents"`
+	DeletedEvents   []string  `json:"deletedEvents"`
 }
 
 type Sponsor struct {
@@ -46,6 +65,49 @@ type User struct {
 }
 
 func (User) IsEntity() {}
+
+type HackathonStatus string
+
+const (
+	HackathonStatusPast    HackathonStatus = "PAST"
+	HackathonStatusPresent HackathonStatus = "PRESENT"
+	HackathonStatusFuture  HackathonStatus = "FUTURE"
+)
+
+var AllHackathonStatus = []HackathonStatus{
+	HackathonStatusPast,
+	HackathonStatusPresent,
+	HackathonStatusFuture,
+}
+
+func (e HackathonStatus) IsValid() bool {
+	switch e {
+	case HackathonStatusPast, HackathonStatusPresent, HackathonStatusFuture:
+		return true
+	}
+	return false
+}
+
+func (e HackathonStatus) String() string {
+	return string(e)
+}
+
+func (e *HackathonStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = HackathonStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid HackathonStatus", str)
+	}
+	return nil
+}
+
+func (e HackathonStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
 
 type Semester string
 

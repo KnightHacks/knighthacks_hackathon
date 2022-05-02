@@ -29,6 +29,13 @@ type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     attendees: [User!]!
     sponsors: [Sponsor!]!
     events: [Event!]!
+    status: HackathonStatus! @goField(forceResolver: true)
+}
+
+enum HackathonStatus {
+    PAST
+    PRESENT
+    FUTURE
 }
 
 enum Semester {
@@ -42,13 +49,34 @@ type Term {
     semester: Semester!
 }
 
-input HackathonFilterInput {
+input HackathonFilter {
     year: Int!
     semester: Semester
 }
 
+input HackathonCreateInput {
+    year: Int!
+    semester: Semester!
+    sponsors: [ID!]
+    events: [ID!]
+}
+
+input HackathonUpdateInput {
+    year: Int
+    semester: Semester
+    moreSponsors: [ID!]
+    deletedSponsors: [ID!]
+    moreEvents: [ID!]
+    deletedEvents: [ID!]
+}
+
 type Query {
     currentHackathon: Hackathon
-    hackathons(input: HackathonFilterInput!): [Hackathon!]!
+    hackathons(filter: HackathonFilter!): [Hackathon!]!
     getHackathon(id: ID!): Hackathon!
+}
+type Mutation {
+    createHackathon(input: HackathonCreateInput!): Hackathon!
+    updateHackathon(input: HackathonUpdateInput!): Hackathon!
+    startHackathon(id: ID!): Hackathon!
 }

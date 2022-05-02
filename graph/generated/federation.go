@@ -100,6 +100,42 @@ func (ec *executionContext) __resolve_entities(ctx context.Context, representati
 				list[idx[i]] = entity
 				return nil
 			}
+		case "Hackathon":
+			resolverName, err := entityResolverNameForHackathon(ctx, rep)
+			if err != nil {
+				return fmt.Errorf(`finding resolver for Entity "Hackathon": %w`, err)
+			}
+			switch resolverName {
+
+			case "findHackathonByID":
+				id0, err := ec.unmarshalNID2string(ctx, rep["id"])
+				if err != nil {
+					return fmt.Errorf(`unmarshalling param 0 for findHackathonByID(): %w`, err)
+				}
+				entity, err := ec.resolvers.Entity().FindHackathonByID(ctx, id0)
+				if err != nil {
+					return fmt.Errorf(`resolving Entity "Hackathon": %w`, err)
+				}
+
+				list[idx[i]] = entity
+				return nil
+			case "findHackathonByTermYearAndTermSemester":
+				id0, err := ec.unmarshalNInt2int(ctx, rep["term"].(map[string]interface{})["year"])
+				if err != nil {
+					return fmt.Errorf(`unmarshalling param 0 for findHackathonByTermYearAndTermSemester(): %w`, err)
+				}
+				id1, err := ec.unmarshalNSemester2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, rep["term"].(map[string]interface{})["semester"])
+				if err != nil {
+					return fmt.Errorf(`unmarshalling param 1 for findHackathonByTermYearAndTermSemester(): %w`, err)
+				}
+				entity, err := ec.resolvers.Entity().FindHackathonByTermYearAndTermSemester(ctx, id0, id1)
+				if err != nil {
+					return fmt.Errorf(`resolving Entity "Hackathon": %w`, err)
+				}
+
+				list[idx[i]] = entity
+				return nil
+			}
 		case "Sponsor":
 			resolverName, err := entityResolverNameForSponsor(ctx, rep)
 			if err != nil {
@@ -224,6 +260,52 @@ func entityResolverNameForEvent(ctx context.Context, rep map[string]interface{})
 		return "findEventByID", nil
 	}
 	return "", fmt.Errorf("%w for Event", ErrTypeNotFound)
+}
+
+func entityResolverNameForHackathon(ctx context.Context, rep map[string]interface{}) (string, error) {
+	for {
+		var (
+			m   map[string]interface{}
+			val interface{}
+			ok  bool
+		)
+		_ = val
+		m = rep
+		if _, ok = m["id"]; !ok {
+			break
+		}
+		return "findHackathonByID", nil
+	}
+	for {
+		var (
+			m   map[string]interface{}
+			val interface{}
+			ok  bool
+		)
+		_ = val
+		m = rep
+		if val, ok = m["term"]; !ok {
+			break
+		}
+		if m, ok = val.(map[string]interface{}); !ok {
+			break
+		}
+		if _, ok = m["year"]; !ok {
+			break
+		}
+		m = rep
+		if val, ok = m["term"]; !ok {
+			break
+		}
+		if m, ok = val.(map[string]interface{}); !ok {
+			break
+		}
+		if _, ok = m["semester"]; !ok {
+			break
+		}
+		return "findHackathonByTermYearAndTermSemester", nil
+	}
+	return "", fmt.Errorf("%w for Hackathon", ErrTypeNotFound)
 }
 
 func entityResolverNameForSponsor(ctx context.Context, rep map[string]interface{}) (string, error) {

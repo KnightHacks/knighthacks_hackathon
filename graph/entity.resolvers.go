@@ -15,6 +15,14 @@ func (r *entityResolver) FindEventByID(ctx context.Context, id string) (*model.E
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *entityResolver) FindHackathonByID(ctx context.Context, id string) (*model.Hackathon, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *entityResolver) FindHackathonByTermYearAndTermSemester(ctx context.Context, termYear int, termSemester model.Semester) (*model.Hackathon, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *entityResolver) FindSponsorByID(ctx context.Context, id string) (*model.Sponsor, error) {
 	panic(fmt.Errorf("not implemented"))
 }
