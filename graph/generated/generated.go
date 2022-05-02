@@ -520,9 +520,9 @@ input HackathonCreateInput {
 input HackathonUpdateInput {
     year: Int
     semester: Semester
-    moreSponsors: [ID!]
     deletedSponsors: [ID!]
-    moreEvents: [ID!]
+    addedSponsors: [ID!]
+    addedEvents: [ID!]
     deletedEvents: [ID!]
 }
 
@@ -3215,14 +3215,6 @@ func (ec *executionContext) unmarshalInputHackathonUpdateInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
-		case "moreSponsors":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moreSponsors"))
-			it.MoreSponsors, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "deletedSponsors":
 			var err error
 
@@ -3231,11 +3223,19 @@ func (ec *executionContext) unmarshalInputHackathonUpdateInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
-		case "moreEvents":
+		case "addedSponsors":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moreEvents"))
-			it.MoreEvents, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addedSponsors"))
+			it.AddedSponsors, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "addedEvents":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addedEvents"))
+			it.AddedEvents, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

@@ -64,9 +64,9 @@ input HackathonCreateInput {
 input HackathonUpdateInput {
     year: Int
     semester: Semester
-    moreSponsors: [ID!]
     deletedSponsors: [ID!]
-    moreEvents: [ID!]
+    addedSponsors: [ID!]
+    addedEvents: [ID!]
     deletedEvents: [ID!]
 }
 
