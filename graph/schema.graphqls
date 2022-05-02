@@ -75,8 +75,8 @@ type Query {
     hackathons(filter: HackathonFilter!): [Hackathon!]!
     getHackathon(id: ID!): Hackathon!
 }
+
 type Mutation {
     createHackathon(input: HackathonCreateInput!): Hackathon!
     updateHackathon(input: HackathonUpdateInput!): Hackathon!
-    startHackathon(id: ID!): Hackathon!
 }
