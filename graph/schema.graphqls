@@ -23,7 +23,7 @@ extend type Sponsor @key(fields: "id") {
     hackathons: [Hackathon!]!
 }
 
-type Hackathon {
+type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     id: ID!
     term: Term!
     attendees: [User!]!
@@ -50,5 +50,5 @@ input HackathonFilterInput {
 type Query {
     currentHackathon: Hackathon
     hackathons(input: HackathonFilterInput!): [Hackathon!]!
-    getHackathon(id: ID!): Hackathon
+    getHackathon(id: ID!): Hackathon!
 }
