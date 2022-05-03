@@ -7,8 +7,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/LockedThread/knighthacks_hackathon/graph/generated"
-	"github.com/LockedThread/knighthacks_hackathon/graph/model"
+	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
+	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 )
 
 func (r *entityResolver) FindEventByID(ctx context.Context, id string) (*model.Event, error) {

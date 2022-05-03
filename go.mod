@@ -1,4 +1,4 @@
-module github.com/LockedThread/knighthacks_hackathon
+module github.com/KnightHacks/knighthacks_hackathon
 
 go 1.18
 

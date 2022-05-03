@@ -14,7 +14,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/99designs/gqlgen/plugin/federation/fedruntime"
-	"github.com/LockedThread/knighthacks_hackathon/graph/model"
+	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -608,7 +608,7 @@ func (ec *executionContext) field_Entity_findHackathonByTermYearAndTermSemester_
 	var arg1 model.Semester
 	if tmp, ok := rawArgs["termSemester"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("termSemester"))
-		arg1, err = ec.unmarshalNSemester2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, tmp)
+		arg1, err = ec.unmarshalNSemester2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -653,7 +653,7 @@ func (ec *executionContext) field_Mutation_createHackathon_args(ctx context.Cont
 	var arg0 model.HackathonCreateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNHackathonCreateInput2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonCreateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNHackathonCreateInput2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonCreateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -668,7 +668,7 @@ func (ec *executionContext) field_Mutation_updateHackathon_args(ctx context.Cont
 	var arg0 model.HackathonUpdateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNHackathonUpdateInput2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonUpdateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNHackathonUpdateInput2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonUpdateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -728,7 +728,7 @@ func (ec *executionContext) field_Query_hackathons_args(ctx context.Context, raw
 	var arg0 model.HackathonFilter
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg0, err = ec.unmarshalNHackathonFilter2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonFilter(ctx, tmp)
+		arg0, err = ec.unmarshalNHackathonFilter2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -814,7 +814,7 @@ func (ec *executionContext) _Entity_findEventByID(ctx context.Context, field gra
 	}
 	res := resTmp.(*model.Event)
 	fc.Result = res
-	return ec.marshalNEvent2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
+	return ec.marshalNEvent2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Entity_findHackathonByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -856,7 +856,7 @@ func (ec *executionContext) _Entity_findHackathonByID(ctx context.Context, field
 	}
 	res := resTmp.(*model.Hackathon)
 	fc.Result = res
-	return ec.marshalNHackathon2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+	return ec.marshalNHackathon2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Entity_findHackathonByTermYearAndTermSemester(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -898,7 +898,7 @@ func (ec *executionContext) _Entity_findHackathonByTermYearAndTermSemester(ctx c
 	}
 	res := resTmp.(*model.Hackathon)
 	fc.Result = res
-	return ec.marshalNHackathon2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+	return ec.marshalNHackathon2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Entity_findSponsorByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -940,7 +940,7 @@ func (ec *executionContext) _Entity_findSponsorByID(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Sponsor)
 	fc.Result = res
-	return ec.marshalNSponsor2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsor(ctx, field.Selections, res)
+	return ec.marshalNSponsor2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Entity_findUserByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -982,7 +982,7 @@ func (ec *executionContext) _Entity_findUserByID(ctx context.Context, field grap
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Event_id(ctx context.Context, field graphql.CollectedField, obj *model.Event) (ret graphql.Marshaler) {
@@ -1052,7 +1052,7 @@ func (ec *executionContext) _Event_hackathon(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*model.Hackathon)
 	fc.Result = res
-	return ec.marshalNHackathon2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+	return ec.marshalNHackathon2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Hackathon_id(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
@@ -1122,7 +1122,7 @@ func (ec *executionContext) _Hackathon_term(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.Term)
 	fc.Result = res
-	return ec.marshalNTerm2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐTerm(ctx, field.Selections, res)
+	return ec.marshalNTerm2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐTerm(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Hackathon_attendees(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
@@ -1157,7 +1157,7 @@ func (ec *executionContext) _Hackathon_attendees(ctx context.Context, field grap
 	}
 	res := resTmp.([]*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Hackathon_sponsors(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
@@ -1192,7 +1192,7 @@ func (ec *executionContext) _Hackathon_sponsors(ctx context.Context, field graph
 	}
 	res := resTmp.([]*model.Sponsor)
 	fc.Result = res
-	return ec.marshalNSponsor2ᚕᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsorᚄ(ctx, field.Selections, res)
+	return ec.marshalNSponsor2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsorᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Hackathon_events(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
@@ -1227,7 +1227,7 @@ func (ec *executionContext) _Hackathon_events(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*model.Event)
 	fc.Result = res
-	return ec.marshalNEvent2ᚕᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐEventᚄ(ctx, field.Selections, res)
+	return ec.marshalNEvent2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐEventᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Hackathon_status(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
@@ -1262,7 +1262,7 @@ func (ec *executionContext) _Hackathon_status(ctx context.Context, field graphql
 	}
 	res := resTmp.(model.HackathonStatus)
 	fc.Result = res
-	return ec.marshalNHackathonStatus2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonStatus(ctx, field.Selections, res)
+	return ec.marshalNHackathonStatus2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1304,7 +1304,7 @@ func (ec *executionContext) _Mutation_createHackathon(ctx context.Context, field
 	}
 	res := resTmp.(*model.Hackathon)
 	fc.Result = res
-	return ec.marshalNHackathon2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+	return ec.marshalNHackathon2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1346,7 +1346,7 @@ func (ec *executionContext) _Mutation_updateHackathon(ctx context.Context, field
 	}
 	res := resTmp.(*model.Hackathon)
 	fc.Result = res
-	return ec.marshalNHackathon2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+	return ec.marshalNHackathon2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_currentHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1378,7 +1378,7 @@ func (ec *executionContext) _Query_currentHackathon(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Hackathon)
 	fc.Result = res
-	return ec.marshalOHackathon2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+	return ec.marshalOHackathon2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_hackathons(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1420,7 +1420,7 @@ func (ec *executionContext) _Query_hackathons(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*model.Hackathon)
 	fc.Result = res
-	return ec.marshalNHackathon2ᚕᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonᚄ(ctx, field.Selections, res)
+	return ec.marshalNHackathon2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1462,7 +1462,7 @@ func (ec *executionContext) _Query_getHackathon(ctx context.Context, field graph
 	}
 	res := resTmp.(*model.Hackathon)
 	fc.Result = res
-	return ec.marshalNHackathon2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+	return ec.marshalNHackathon2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1680,7 +1680,7 @@ func (ec *executionContext) _Sponsor_hackathons(ctx context.Context, field graph
 	}
 	res := resTmp.([]*model.Hackathon)
 	fc.Result = res
-	return ec.marshalNHackathon2ᚕᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonᚄ(ctx, field.Selections, res)
+	return ec.marshalNHackathon2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Term_year(ctx context.Context, field graphql.CollectedField, obj *model.Term) (ret graphql.Marshaler) {
@@ -1750,7 +1750,7 @@ func (ec *executionContext) _Term_semester(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(model.Semester)
 	fc.Result = res
-	return ec.marshalNSemester2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, field.Selections, res)
+	return ec.marshalNSemester2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -1820,7 +1820,7 @@ func (ec *executionContext) _User_hackathons(ctx context.Context, field graphql.
 	}
 	res := resTmp.([]*model.Hackathon)
 	fc.Result = res
-	return ec.marshalNHackathon2ᚕᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonᚄ(ctx, field.Selections, res)
+	return ec.marshalNHackathon2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) __Service_sdl(ctx context.Context, field graphql.CollectedField, obj *fedruntime.Service) (ret graphql.Marshaler) {
@@ -3062,7 +3062,7 @@ func (ec *executionContext) unmarshalInputHackathonCreateInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("semester"))
-			it.Semester, err = ec.unmarshalNSemester2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, v)
+			it.Semester, err = ec.unmarshalNSemester2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3109,7 +3109,7 @@ func (ec *executionContext) unmarshalInputHackathonFilter(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("semester"))
-			it.Semester, err = ec.unmarshalOSemester2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, v)
+			it.Semester, err = ec.unmarshalOSemester2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3140,7 +3140,7 @@ func (ec *executionContext) unmarshalInputHackathonUpdateInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("semester"))
-			it.Semester, err = ec.unmarshalOSemester2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, v)
+			it.Semester, err = ec.unmarshalOSemester2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4299,11 +4299,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNEvent2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v model.Event) graphql.Marshaler {
+func (ec *executionContext) marshalNEvent2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v model.Event) graphql.Marshaler {
 	return ec._Event(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNEvent2ᚕᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Event) graphql.Marshaler {
+func (ec *executionContext) marshalNEvent2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Event) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4327,7 +4327,7 @@ func (ec *executionContext) marshalNEvent2ᚕᚖgithubᚗcomᚋLockedThreadᚋkn
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNEvent2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐEvent(ctx, sel, v[i])
+			ret[i] = ec.marshalNEvent2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐEvent(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4347,7 +4347,7 @@ func (ec *executionContext) marshalNEvent2ᚕᚖgithubᚗcomᚋLockedThreadᚋkn
 	return ret
 }
 
-func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v *model.Event) graphql.Marshaler {
+func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v *model.Event) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4357,11 +4357,11 @@ func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋLockedThreadᚋknigh
 	return ec._Event(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNHackathon2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx context.Context, sel ast.SelectionSet, v model.Hackathon) graphql.Marshaler {
+func (ec *executionContext) marshalNHackathon2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx context.Context, sel ast.SelectionSet, v model.Hackathon) graphql.Marshaler {
 	return ec._Hackathon(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNHackathon2ᚕᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Hackathon) graphql.Marshaler {
+func (ec *executionContext) marshalNHackathon2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Hackathon) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4385,7 +4385,7 @@ func (ec *executionContext) marshalNHackathon2ᚕᚖgithubᚗcomᚋLockedThread�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNHackathon2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, sel, v[i])
+			ret[i] = ec.marshalNHackathon2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4405,7 +4405,7 @@ func (ec *executionContext) marshalNHackathon2ᚕᚖgithubᚗcomᚋLockedThread�
 	return ret
 }
 
-func (ec *executionContext) marshalNHackathon2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx context.Context, sel ast.SelectionSet, v *model.Hackathon) graphql.Marshaler {
+func (ec *executionContext) marshalNHackathon2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx context.Context, sel ast.SelectionSet, v *model.Hackathon) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4415,27 +4415,27 @@ func (ec *executionContext) marshalNHackathon2ᚖgithubᚗcomᚋLockedThreadᚋk
 	return ec._Hackathon(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNHackathonCreateInput2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonCreateInput(ctx context.Context, v interface{}) (model.HackathonCreateInput, error) {
+func (ec *executionContext) unmarshalNHackathonCreateInput2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonCreateInput(ctx context.Context, v interface{}) (model.HackathonCreateInput, error) {
 	res, err := ec.unmarshalInputHackathonCreateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNHackathonFilter2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonFilter(ctx context.Context, v interface{}) (model.HackathonFilter, error) {
+func (ec *executionContext) unmarshalNHackathonFilter2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonFilter(ctx context.Context, v interface{}) (model.HackathonFilter, error) {
 	res, err := ec.unmarshalInputHackathonFilter(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNHackathonStatus2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonStatus(ctx context.Context, v interface{}) (model.HackathonStatus, error) {
+func (ec *executionContext) unmarshalNHackathonStatus2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonStatus(ctx context.Context, v interface{}) (model.HackathonStatus, error) {
 	var res model.HackathonStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNHackathonStatus2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonStatus(ctx context.Context, sel ast.SelectionSet, v model.HackathonStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNHackathonStatus2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonStatus(ctx context.Context, sel ast.SelectionSet, v model.HackathonStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNHackathonUpdateInput2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonUpdateInput(ctx context.Context, v interface{}) (model.HackathonUpdateInput, error) {
+func (ec *executionContext) unmarshalNHackathonUpdateInput2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonUpdateInput(ctx context.Context, v interface{}) (model.HackathonUpdateInput, error) {
 	res, err := ec.unmarshalInputHackathonUpdateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -4470,21 +4470,21 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNSemester2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx context.Context, v interface{}) (model.Semester, error) {
+func (ec *executionContext) unmarshalNSemester2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx context.Context, v interface{}) (model.Semester, error) {
 	var res model.Semester
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSemester2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx context.Context, sel ast.SelectionSet, v model.Semester) graphql.Marshaler {
+func (ec *executionContext) marshalNSemester2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx context.Context, sel ast.SelectionSet, v model.Semester) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNSponsor2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsor(ctx context.Context, sel ast.SelectionSet, v model.Sponsor) graphql.Marshaler {
+func (ec *executionContext) marshalNSponsor2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsor(ctx context.Context, sel ast.SelectionSet, v model.Sponsor) graphql.Marshaler {
 	return ec._Sponsor(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSponsor2ᚕᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Sponsor) graphql.Marshaler {
+func (ec *executionContext) marshalNSponsor2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Sponsor) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4508,7 +4508,7 @@ func (ec *executionContext) marshalNSponsor2ᚕᚖgithubᚗcomᚋLockedThreadᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNSponsor2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsor(ctx, sel, v[i])
+			ret[i] = ec.marshalNSponsor2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsor(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4528,7 +4528,7 @@ func (ec *executionContext) marshalNSponsor2ᚕᚖgithubᚗcomᚋLockedThreadᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNSponsor2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsor(ctx context.Context, sel ast.SelectionSet, v *model.Sponsor) graphql.Marshaler {
+func (ec *executionContext) marshalNSponsor2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsor(ctx context.Context, sel ast.SelectionSet, v *model.Sponsor) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4553,7 +4553,7 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNTerm2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐTerm(ctx context.Context, sel ast.SelectionSet, v *model.Term) graphql.Marshaler {
+func (ec *executionContext) marshalNTerm2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐTerm(ctx context.Context, sel ast.SelectionSet, v *model.Term) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4563,11 +4563,11 @@ func (ec *executionContext) marshalNTerm2ᚖgithubᚗcomᚋLockedThreadᚋknight
 	return ec._Term(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUser2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4591,7 +4591,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋLockedThreadᚋkni
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐUser(ctx, sel, v[i])
+			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUser(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4611,7 +4611,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋLockedThreadᚋkni
 	return ret
 }
 
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -5010,7 +5010,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOHackathon2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx context.Context, sel ast.SelectionSet, v *model.Hackathon) graphql.Marshaler {
+func (ec *executionContext) marshalOHackathon2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx context.Context, sel ast.SelectionSet, v *model.Hackathon) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -5071,7 +5071,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) unmarshalOSemester2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx context.Context, v interface{}) (*model.Semester, error) {
+func (ec *executionContext) unmarshalOSemester2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx context.Context, v interface{}) (*model.Semester, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -5080,7 +5080,7 @@ func (ec *executionContext) unmarshalOSemester2ᚖgithubᚗcomᚋLockedThreadᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOSemester2ᚖgithubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx context.Context, sel ast.SelectionSet, v *model.Semester) graphql.Marshaler {
+func (ec *executionContext) marshalOSemester2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx context.Context, sel ast.SelectionSet, v *model.Semester) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

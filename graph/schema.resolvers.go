@@ -7,8 +7,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/LockedThread/knighthacks_hackathon/graph/generated"
-	"github.com/LockedThread/knighthacks_hackathon/graph/model"
+	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
+	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 )
 
 func (r *hackathonResolver) Status(ctx context.Context, obj *model.Hackathon) (model.HackathonStatus, error) {

@@ -124,7 +124,7 @@ func (ec *executionContext) __resolve_entities(ctx context.Context, representati
 				if err != nil {
 					return fmt.Errorf(`unmarshalling param 0 for findHackathonByTermYearAndTermSemester(): %w`, err)
 				}
-				id1, err := ec.unmarshalNSemester2githubᚗcomᚋLockedThreadᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, rep["term"].(map[string]interface{})["semester"])
+				id1, err := ec.unmarshalNSemester2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx, rep["term"].(map[string]interface{})["semester"])
 				if err != nil {
 					return fmt.Errorf(`unmarshalling param 1 for findHackathonByTermYearAndTermSemester(): %w`, err)
 				}

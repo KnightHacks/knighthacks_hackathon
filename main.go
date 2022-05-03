@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/LockedThread/knighthacks_hackathon/graph"
-	"github.com/LockedThread/knighthacks_hackathon/graph/generated"
+	"github.com/KnightHacks/knighthacks_hackathon/graph"
+	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
 	"log"
 	"net/http"
 	"os"
