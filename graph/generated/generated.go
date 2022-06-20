@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -62,16 +63,18 @@ type ComplexityRoot struct {
 
 	Hackathon struct {
 		Attendees func(childComplexity int) int
+		EndDate   func(childComplexity int) int
 		Events    func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Sponsors  func(childComplexity int) int
+		StartDate func(childComplexity int) int
 		Status    func(childComplexity int) int
 		Term      func(childComplexity int) int
 	}
 
 	Mutation struct {
 		CreateHackathon func(childComplexity int, input model.HackathonCreateInput) int
-		UpdateHackathon func(childComplexity int, input model.HackathonUpdateInput) int
+		UpdateHackathon func(childComplexity int, id string, input model.HackathonUpdateInput) int
 	}
 
 	Query struct {
@@ -110,11 +113,14 @@ type EntityResolver interface {
 	FindUserByID(ctx context.Context, id string) (*model.User, error)
 }
 type HackathonResolver interface {
+	Attendees(ctx context.Context, obj *model.Hackathon) ([]*model.User, error)
+	Sponsors(ctx context.Context, obj *model.Hackathon) ([]*model.Sponsor, error)
+	Events(ctx context.Context, obj *model.Hackathon) ([]*model.Event, error)
 	Status(ctx context.Context, obj *model.Hackathon) (model.HackathonStatus, error)
 }
 type MutationResolver interface {
 	CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error)
-	UpdateHackathon(ctx context.Context, input model.HackathonUpdateInput) (*model.Hackathon, error)
+	UpdateHackathon(ctx context.Context, id string, input model.HackathonUpdateInput) (*model.Hackathon, error)
 }
 type QueryResolver interface {
 	CurrentHackathon(ctx context.Context) (*model.Hackathon, error)
@@ -218,6 +224,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Hackathon.Attendees(childComplexity), true
 
+	case "Hackathon.endDate":
+		if e.complexity.Hackathon.EndDate == nil {
+			break
+		}
+
+		return e.complexity.Hackathon.EndDate(childComplexity), true
+
 	case "Hackathon.events":
 		if e.complexity.Hackathon.Events == nil {
 			break
@@ -238,6 +251,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Hackathon.Sponsors(childComplexity), true
+
+	case "Hackathon.startDate":
+		if e.complexity.Hackathon.StartDate == nil {
+			break
+		}
+
+		return e.complexity.Hackathon.StartDate(childComplexity), true
 
 	case "Hackathon.status":
 		if e.complexity.Hackathon.Status == nil {
@@ -275,7 +295,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateHackathon(childComplexity, args["input"].(model.HackathonUpdateInput)), true
+		return e.complexity.Mutation.UpdateHackathon(childComplexity, args["id"].(string), args["input"].(model.HackathonUpdateInput)), true
 
 	case "Query.currentHackathon":
 		if e.complexity.Query.CurrentHackathon == nil {
@@ -440,7 +460,9 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "graph/schema.graphqls", Input: `directive @goModel(model: String, models: [String!]) on OBJECT
+	{Name: "graph/schema.graphqls", Input: `scalar Time
+
+directive @goModel(model: String, models: [String!]) on OBJECT
     | INPUT_OBJECT
     | SCALAR
     | ENUM
@@ -468,9 +490,12 @@ extend type Sponsor @key(fields: "id") {
 type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     id: ID!
     term: Term!
-    attendees: [User!]!
-    sponsors: [Sponsor!]!
-    events: [Event!]!
+    startDate: Time!
+    endDate: Time!
+
+    attendees: [User!]! @goField(forceResolver: true)
+    sponsors: [Sponsor!]! @goField(forceResolver: true)
+    events: [Event!]! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
 }
 
@@ -520,7 +545,7 @@ type Query {
 
 type Mutation {
     createHackathon(input: HackathonCreateInput!): Hackathon!
-    updateHackathon(input: HackathonUpdateInput!): Hackathon!
+    updateHackathon(id: ID!, input: HackathonUpdateInput!): Hackathon!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -665,15 +690,24 @@ func (ec *executionContext) field_Mutation_createHackathon_args(ctx context.Cont
 func (ec *executionContext) field_Mutation_updateHackathon_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.HackathonUpdateInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNHackathonUpdateInput2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonUpdateInput(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["id"] = arg0
+	var arg1 model.HackathonUpdateInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNHackathonUpdateInput2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonUpdateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -1125,7 +1159,7 @@ func (ec *executionContext) _Hackathon_term(ctx context.Context, field graphql.C
 	return ec.marshalNTerm2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐTerm(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Hackathon_attendees(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
+func (ec *executionContext) _Hackathon_startDate(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1143,7 +1177,77 @@ func (ec *executionContext) _Hackathon_attendees(ctx context.Context, field grap
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Attendees, nil
+		return obj.StartDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Hackathon_endDate(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Hackathon",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Hackathon_attendees(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Hackathon",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Hackathon().Attendees(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1171,14 +1275,14 @@ func (ec *executionContext) _Hackathon_sponsors(ctx context.Context, field graph
 		Object:     "Hackathon",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Sponsors, nil
+		return ec.resolvers.Hackathon().Sponsors(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1206,14 +1310,14 @@ func (ec *executionContext) _Hackathon_events(ctx context.Context, field graphql
 		Object:     "Hackathon",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Events, nil
+		return ec.resolvers.Hackathon().Events(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1332,7 +1436,7 @@ func (ec *executionContext) _Mutation_updateHackathon(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateHackathon(rctx, args["input"].(model.HackathonUpdateInput))
+		return ec.resolvers.Mutation().UpdateHackathon(rctx, args["id"].(string), args["input"].(model.HackathonUpdateInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3443,36 +3547,86 @@ func (ec *executionContext) _Hackathon(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "startDate":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Hackathon_startDate(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "endDate":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Hackathon_endDate(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "attendees":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Hackathon_attendees(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Hackathon_attendees(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			})
 		case "sponsors":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Hackathon_sponsors(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Hackathon_sponsors(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			})
 		case "events":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Hackathon_events(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Hackathon_events(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			})
 		case "status":
 			field := field
 
@@ -4561,6 +4715,21 @@ func (ec *executionContext) marshalNTerm2ᚖgithubᚗcomᚋKnightHacksᚋknighth
 		return graphql.Null
 	}
 	return ec._Term(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := graphql.MarshalTime(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNUser2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {

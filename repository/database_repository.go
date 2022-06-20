@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -14,4 +16,34 @@ func NewDatabaseRepository(databasePool *pgxpool.Pool) *DatabaseRepository {
 	return &DatabaseRepository{
 		DatabasePool: databasePool,
 	}
+}
+
+func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, input model.HackathonUpdateInput) (*model.Hackathon, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) GetHackathon(ctx context.Context, id string) (*model.Hackathon, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) DeleteHackathon(ctx context.Context, id string) (*model.Hackathon, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) GetCurrentHackathon(ctx context.Context) (*model.Hackathon, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) GetHackathons(ctx context.Context, filter *model.HackathonFilter) ([]*model.Hackathon, error) {
+	//TODO implement me
+	panic("implement me")
 }

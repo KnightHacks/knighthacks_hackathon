@@ -1,3 +1,5 @@
+scalar Time
+
 directive @goModel(model: String, models: [String!]) on OBJECT
     | INPUT_OBJECT
     | SCALAR
@@ -26,9 +28,12 @@ extend type Sponsor @key(fields: "id") {
 type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     id: ID!
     term: Term!
-    attendees: [User!]!
-    sponsors: [Sponsor!]!
-    events: [Event!]!
+    startDate: Time!
+    endDate: Time!
+
+    attendees: [User!]! @goField(forceResolver: true)
+    sponsors: [Sponsor!]! @goField(forceResolver: true)
+    events: [Event!]! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
 }
 
@@ -78,5 +83,5 @@ type Query {
 
 type Mutation {
     createHackathon(input: HackathonCreateInput!): Hackathon!
-    updateHackathon(input: HackathonUpdateInput!): Hackathon!
+    updateHackathon(id: ID!, input: HackathonUpdateInput!): Hackathon!
 }

@@ -1,5 +1,19 @@
 package repository
 
+import (
+	"context"
+	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
+)
+
 type Repository interface {
-	// TODO: create interface functions & implement them in database_repository.go
+	CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error)
+	UpdateHackathon(ctx context.Context, id string, input model.HackathonUpdateInput) (*model.Hackathon, error)
+	GetHackathon(ctx context.Context, id string) (*model.Hackathon, error)
+	DeleteHackathon(ctx context.Context, id string) (*model.Hackathon, error)
+
+	GetCurrentHackathon(ctx context.Context) (*model.Hackathon, error)
+
+	// Array returns
+
+	GetHackathons(ctx context.Context, filter *model.HackathonFilter) ([]*model.Hackathon, error)
 }
