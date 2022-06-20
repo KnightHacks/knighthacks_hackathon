@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 )
 
 type Event struct {
@@ -18,6 +19,8 @@ func (Event) IsEntity() {}
 type Hackathon struct {
 	ID        string          `json:"id"`
 	Term      *Term           `json:"term"`
+	StartDate time.Time       `json:"startDate"`
+	EndDate   time.Time       `json:"endDate"`
 	Attendees []*User         `json:"attendees"`
 	Sponsors  []*Sponsor      `json:"sponsors"`
 	Events    []*Event        `json:"events"`

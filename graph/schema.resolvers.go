@@ -11,29 +11,56 @@ import (
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 )
 
+func (r *sponsorResolver) Hackathons(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userResolver) Hackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *eventResolver) Hackathon(ctx context.Context, obj *model.Event) (*model.Hackathon, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *hackathonResolver) Attendees(ctx context.Context, obj *model.Hackathon) ([]*model.User, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *hackathonResolver) Sponsors(ctx context.Context, obj *model.Hackathon) ([]*model.Sponsor, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *hackathonResolver) Events(ctx context.Context, obj *model.Hackathon) ([]*model.Event, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *hackathonResolver) Status(ctx context.Context, obj *model.Hackathon) (model.HackathonStatus, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *mutationResolver) CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.CreateHackathon(ctx, input)
 }
 
-func (r *mutationResolver) UpdateHackathon(ctx context.Context, input model.HackathonUpdateInput) (*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) UpdateHackathon(ctx context.Context, id string, input model.HackathonUpdateInput) (*model.Hackathon, error) {
+	return r.Repository.UpdateHackathon(ctx, id, input)
 }
 
 func (r *queryResolver) CurrentHackathon(ctx context.Context) (*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetCurrentHackathon(ctx)
 }
 
 func (r *queryResolver) Hackathons(ctx context.Context, filter model.HackathonFilter) ([]*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetHackathons(ctx, &filter)
 }
 
 func (r *queryResolver) GetHackathon(ctx context.Context, id string) (*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetHackathon(ctx, id)
 }
+
+// Event returns generated.EventResolver implementation.
+func (r *Resolver) Event() generated.EventResolver { return &eventResolver{r} }
 
 // Hackathon returns generated.HackathonResolver implementation.
 func (r *Resolver) Hackathon() generated.HackathonResolver { return &hackathonResolver{r} }
@@ -44,6 +71,15 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// Sponsor returns generated.SponsorResolver implementation.
+func (r *Resolver) Sponsor() generated.SponsorResolver { return &sponsorResolver{r} }
+
+// User returns generated.UserResolver implementation.
+func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
+
+type eventResolver struct{ *Resolver }
 type hackathonResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type sponsorResolver struct{ *Resolver }
+type userResolver struct{ *Resolver }
