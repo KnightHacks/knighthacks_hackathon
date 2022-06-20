@@ -47,3 +47,13 @@ func (r *DatabaseRepository) GetHackathons(ctx context.Context, filter *model.Ha
 	//TODO implement me
 	panic("implement me")
 }
+
+func (r *DatabaseRepository) GetHackathonByTermYearAndTermSemester(ctx context.Context, termYear int, termSemester model.Semester) (*model.Hackathon, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) GetEventById() {
+	//TODO implement me
+	panic("implement me")
+}

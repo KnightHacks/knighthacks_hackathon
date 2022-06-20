@@ -5,30 +5,28 @@ package graph
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 )
 
 func (r *entityResolver) FindEventByID(ctx context.Context, id string) (*model.Event, error) {
-	panic(fmt.Errorf("not implemented"))
+	return &model.Event{ID: id}, nil
 }
 
 func (r *entityResolver) FindHackathonByID(ctx context.Context, id string) (*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetHackathon(ctx, id)
 }
 
 func (r *entityResolver) FindHackathonByTermYearAndTermSemester(ctx context.Context, termYear int, termSemester model.Semester) (*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetHackathonByTermYearAndTermSemester(ctx, termYear, termSemester)
 }
 
 func (r *entityResolver) FindSponsorByID(ctx context.Context, id string) (*model.Sponsor, error) {
-	panic(fmt.Errorf("not implemented"))
+	return &model.Sponsor{ID: id}, nil
 }
 
 func (r *entityResolver) FindUserByID(ctx context.Context, id string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return &model.User{ID: id}, nil
 }
 
 // Entity returns generated.EntityResolver implementation.
