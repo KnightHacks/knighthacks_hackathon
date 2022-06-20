@@ -39,9 +39,12 @@ type Config struct {
 
 type ResolverRoot interface {
 	Entity() EntityResolver
+	Event() EventResolver
 	Hackathon() HackathonResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Sponsor() SponsorResolver
+	User() UserResolver
 }
 
 type DirectiveRoot struct {
@@ -112,6 +115,9 @@ type EntityResolver interface {
 	FindSponsorByID(ctx context.Context, id string) (*model.Sponsor, error)
 	FindUserByID(ctx context.Context, id string) (*model.User, error)
 }
+type EventResolver interface {
+	Hackathon(ctx context.Context, obj *model.Event) (*model.Hackathon, error)
+}
 type HackathonResolver interface {
 	Attendees(ctx context.Context, obj *model.Hackathon) ([]*model.User, error)
 	Sponsors(ctx context.Context, obj *model.Hackathon) ([]*model.Sponsor, error)
@@ -126,6 +132,12 @@ type QueryResolver interface {
 	CurrentHackathon(ctx context.Context) (*model.Hackathon, error)
 	Hackathons(ctx context.Context, filter model.HackathonFilter) ([]*model.Hackathon, error)
 	GetHackathon(ctx context.Context, id string) (*model.Hackathon, error)
+}
+type SponsorResolver interface {
+	Hackathons(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error)
+}
+type UserResolver interface {
+	Hackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error)
 }
 
 type executableSchema struct {
@@ -474,17 +486,17 @@ directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITI
 
 extend type Event @key(fields: "id") {
     id: ID! @external
-    hackathon: Hackathon!
+    hackathon: Hackathon! @goField(forceResolver: true)
 }
 
 extend type User @key(fields: "id") {
     id: ID! @external
-    hackathons: [Hackathon!]!
+    hackathons: [Hackathon!]! @goField(forceResolver: true)
 }
 
 extend type Sponsor @key(fields: "id") {
     id: ID! @external
-    hackathons: [Hackathon!]!
+    hackathons: [Hackathon!]! @goField(forceResolver: true)
 }
 
 type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
@@ -1065,14 +1077,14 @@ func (ec *executionContext) _Event_hackathon(ctx context.Context, field graphql.
 		Object:     "Event",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Hackathon, nil
+		return ec.resolvers.Event().Hackathon(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1763,14 +1775,14 @@ func (ec *executionContext) _Sponsor_hackathons(ctx context.Context, field graph
 		Object:     "Sponsor",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Hackathons, nil
+		return ec.resolvers.Sponsor().Hackathons(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1903,14 +1915,14 @@ func (ec *executionContext) _User_hackathons(ctx context.Context, field graphql.
 		Object:     "User",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Hackathons, nil
+		return ec.resolvers.User().Hackathons(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3494,18 +3506,28 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "hackathon":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Event_hackathon(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Event_hackathon(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3882,18 +3904,28 @@ func (ec *executionContext) _Sponsor(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "hackathons":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Sponsor_hackathons(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Sponsor_hackathons(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3964,18 +3996,28 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "hackathons":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_hackathons(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_hackathons(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -12,17 +12,17 @@ directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITI
 
 extend type Event @key(fields: "id") {
     id: ID! @external
-    hackathon: Hackathon!
+    hackathon: Hackathon! @goField(forceResolver: true)
 }
 
 extend type User @key(fields: "id") {
     id: ID! @external
-    hackathons: [Hackathon!]!
+    hackathons: [Hackathon!]! @goField(forceResolver: true)
 }
 
 extend type Sponsor @key(fields: "id") {
     id: ID! @external
-    hackathons: [Hackathon!]!
+    hackathons: [Hackathon!]! @goField(forceResolver: true)
 }
 
 type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
