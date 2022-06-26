@@ -103,9 +103,15 @@ func (r *DatabaseRepository) getTermId(ctx context.Context, queryable database.Q
 	return *termId, nil
 }
 
-func (r *DatabaseRepository) DeleteHackathon(ctx context.Context, id string) (*model.Hackathon, error) {
-	//TODO implement me
-	panic("implement me")
+func (r *DatabaseRepository) DeleteHackathon(ctx context.Context, id string) (bool, error) {
+	exec, err := r.DatabasePool.Exec(ctx, "DELETE FROM hackathons WHERE id = $1", id)
+	if err != nil {
+		return false, err
+	}
+	if exec.RowsAffected() != 1 {
+		return false, nil
+	}
+	return true, nil
 }
 
 func (r *DatabaseRepository) GetCurrentHackathon(ctx context.Context) (*model.Hackathon, error) {

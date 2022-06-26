@@ -11,7 +11,7 @@ type Repository interface {
 	GetHackathon(ctx context.Context, id string) (*model.Hackathon, error)
 	GetHackathonByTermYearAndTermSemester(ctx context.Context, termYear int, termSemester model.Semester) (*model.Hackathon, error)
 
-	DeleteHackathon(ctx context.Context, id string) (*model.Hackathon, error)
+	DeleteHackathon(ctx context.Context, id string) (bool, error)
 
 	GetCurrentHackathon(ctx context.Context) (*model.Hackathon, error)
 

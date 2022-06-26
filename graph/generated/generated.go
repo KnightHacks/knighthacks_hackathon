@@ -77,6 +77,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		CreateHackathon func(childComplexity int, input model.HackathonCreateInput) int
+		DeleteHackathon func(childComplexity int, id string) int
 		UpdateHackathon func(childComplexity int, id string, input model.HackathonUpdateInput) int
 	}
 
@@ -127,6 +128,7 @@ type HackathonResolver interface {
 type MutationResolver interface {
 	CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error)
 	UpdateHackathon(ctx context.Context, id string, input model.HackathonUpdateInput) (*model.Hackathon, error)
+	DeleteHackathon(ctx context.Context, id string) (bool, error)
 }
 type QueryResolver interface {
 	CurrentHackathon(ctx context.Context) (*model.Hackathon, error)
@@ -296,6 +298,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateHackathon(childComplexity, args["input"].(model.HackathonCreateInput)), true
+
+	case "Mutation.deleteHackathon":
+		if e.complexity.Mutation.DeleteHackathon == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteHackathon_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteHackathon(childComplexity, args["id"].(string)), true
 
 	case "Mutation.updateHackathon":
 		if e.complexity.Mutation.UpdateHackathon == nil {
@@ -565,6 +579,7 @@ type Query {
 type Mutation {
     createHackathon(input: HackathonCreateInput!): Hackathon!
     updateHackathon(id: ID!, input: HackathonUpdateInput!): Hackathon!
+    deleteHackathon(id: ID!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../../federation/directives.graphql", Input: `
@@ -704,6 +719,21 @@ func (ec *executionContext) field_Mutation_createHackathon_args(ctx context.Cont
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteHackathon_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -1780,6 +1810,61 @@ func (ec *executionContext) fieldContext_Mutation_updateHackathon(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateHackathon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteHackathon(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteHackathon(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteHackathon(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteHackathon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -4877,6 +4962,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateHackathon(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteHackathon":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteHackathon(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

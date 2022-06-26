@@ -84,4 +84,5 @@ type Query {
 type Mutation {
     createHackathon(input: HackathonCreateInput!): Hackathon!
     updateHackathon(id: ID!, input: HackathonUpdateInput!): Hackathon!
+    deleteHackathon(id: ID!): Boolean!
 }

@@ -39,6 +39,10 @@ func (r *mutationResolver) UpdateHackathon(ctx context.Context, id string, input
 	return r.Repository.UpdateHackathon(ctx, id, &input)
 }
 
+func (r *mutationResolver) DeleteHackathon(ctx context.Context, id string) (bool, error) {
+	return r.Repository.DeleteHackathon(ctx, id)
+}
+
 func (r *queryResolver) CurrentHackathon(ctx context.Context) (*model.Hackathon, error) {
 	return r.Repository.GetCurrentHackathon(ctx)
 }
