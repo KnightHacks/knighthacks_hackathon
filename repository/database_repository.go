@@ -103,6 +103,18 @@ func (r *DatabaseRepository) getTermId(ctx context.Context, queryable database.Q
 	return *termId, nil
 }
 
+func (r *DatabaseRepository) getTermById(ctx context.Context, queryable database.Queryable, id int) (*model.Term, error) {
+	var term model.Term
+	err := queryable.QueryRow(ctx, "SELECT year, semester FROM terms WHERE id = $1", id).Scan(&term.Year, &term.Semester)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return nil, nil
+}
+
 func (r *DatabaseRepository) DeleteHackathon(ctx context.Context, id string) (bool, error) {
 	exec, err := r.DatabasePool.Exec(ctx, "DELETE FROM hackathons WHERE id = $1", id)
 	if err != nil {
@@ -114,9 +126,38 @@ func (r *DatabaseRepository) DeleteHackathon(ctx context.Context, id string) (bo
 	return true, nil
 }
 
+// GetCurrentHackathon
+// TODO: Change name to GetNextHackathon
 func (r *DatabaseRepository) GetCurrentHackathon(ctx context.Context) (*model.Hackathon, error) {
-	//TODO implement me
-	panic("implement me")
+	var hackathon model.Hackathon
+	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		var termId int
+		// TODO: Check validity of using DESC
+		err := tx.QueryRow(ctx, "SELECT TOP 1 id, term_id, start_date, end_date FROM hackathons WHERE end_date > @CurrentDate ORDER BY end_date DESC").Scan(
+			&hackathon.ID,
+			&termId,
+			&hackathon.StartDate,
+			&hackathon.EndDate,
+		)
+		if err != nil {
+			return err
+		}
+		term, ok := r.TermBiMap.Get(termId).(model.Term)
+		if ok {
+			hackathon.Term = &term
+		} else {
+			term, err := r.getTermById(ctx, tx, termId)
+			if err != nil {
+				return err
+			}
+			hackathon.Term = term
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &hackathon, nil
 }
 
 func (r *DatabaseRepository) GetHackathons(ctx context.Context, filter *model.HackathonFilter) ([]*model.Hackathon, error) {
