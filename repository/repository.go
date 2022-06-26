@@ -18,8 +18,4 @@ type Repository interface {
 	// Array returns
 
 	GetHackathons(ctx context.Context, filter *model.HackathonFilter) ([]*model.Hackathon, error)
-
-	// Shared References
-
-	GetEventById()
 }
