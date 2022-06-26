@@ -57,7 +57,7 @@ func (r *DatabaseRepository) GetHackathonByTermYearAndTermSemester(ctx context.C
 		}
 		queryable = tx
 
-		_, err = r.getTermId(ctx, queryable, termYear, termSemester)
+		termId, err = r.getTermId(ctx, queryable, termYear, termSemester)
 		if err != nil {
 			if errors.Is(err, NoHackathonByTerm) {
 				return nil, nil
@@ -67,6 +67,7 @@ func (r *DatabaseRepository) GetHackathonByTermYearAndTermSemester(ctx context.C
 			}
 			return nil, err
 		}
+		r.TermBiMap.Put(termId, term)
 		defer tx.Commit(ctx).Error()
 	}
 
@@ -150,6 +151,7 @@ func (r *DatabaseRepository) GetCurrentHackathon(ctx context.Context) (*model.Ha
 			if err != nil {
 				return err
 			}
+			r.TermBiMap.Put(termId, term)
 			hackathon.Term = term
 		}
 		return nil
