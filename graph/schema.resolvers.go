@@ -11,14 +11,6 @@ import (
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 )
 
-func (r *sponsorResolver) Hackathons(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *userResolver) Hackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *eventResolver) Hackathon(ctx context.Context, obj *model.Event) (*model.Hackathon, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -40,11 +32,11 @@ func (r *hackathonResolver) Status(ctx context.Context, obj *model.Hackathon) (m
 }
 
 func (r *mutationResolver) CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error) {
-	return r.Repository.CreateHackathon(ctx, input)
+	return r.Repository.CreateHackathon(ctx, &input)
 }
 
 func (r *mutationResolver) UpdateHackathon(ctx context.Context, id string, input model.HackathonUpdateInput) (*model.Hackathon, error) {
-	return r.Repository.UpdateHackathon(ctx, id, input)
+	return r.Repository.UpdateHackathon(ctx, id, &input)
 }
 
 func (r *queryResolver) CurrentHackathon(ctx context.Context) (*model.Hackathon, error) {
@@ -57,6 +49,14 @@ func (r *queryResolver) Hackathons(ctx context.Context, filter model.HackathonFi
 
 func (r *queryResolver) GetHackathon(ctx context.Context, id string) (*model.Hackathon, error) {
 	return r.Repository.GetHackathon(ctx, id)
+}
+
+func (r *sponsorResolver) Hackathons(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userResolver) Hackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Event returns generated.EventResolver implementation.

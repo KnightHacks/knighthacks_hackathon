@@ -28,12 +28,12 @@ func NewDatabaseRepository(databasePool *pgxpool.Pool) *DatabaseRepository {
 	}
 }
 
-func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error) {
+func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.HackathonCreateInput) (*model.Hackathon, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, input model.HackathonUpdateInput) (*model.Hackathon, error) {
+func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, input *model.HackathonUpdateInput) (*model.Hackathon, error) {
 	//TODO implement me
 	panic("implement me")
 }
