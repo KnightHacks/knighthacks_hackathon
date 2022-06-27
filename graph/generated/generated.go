@@ -16,6 +16,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/99designs/gqlgen/plugin/federation/fedruntime"
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
+	"github.com/KnightHacks/knighthacks_shared/models"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -48,6 +49,8 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	HasRole    func(ctx context.Context, obj interface{}, next graphql.Resolver, role models.Role) (res interface{}, err error)
+	Pagination func(ctx context.Context, obj interface{}, next graphql.Resolver, maxLength int) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -505,6 +508,19 @@ directive @goModel(model: String, models: [String!]) on OBJECT
 directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION
     | FIELD_DEFINITION
 
+directive @hasRole(role: Role!) on FIELD_DEFINITION | OBJECT # set minimum layer of security
+directive @pagination(maxLength: Int!) on FIELD_DEFINITION
+
+enum Role @goModel(model: "github.com/KnightHacks/knighthacks_shared/models.Role") {
+    ADMIN
+    """
+    for now keep this the same
+    """
+    SPONSOR
+    NORMAL
+    OWNS
+}
+
 extend type Event @key(fields: "id") {
     id: ID! @external
     hackathon: Hackathon! @goField(forceResolver: true)
@@ -579,9 +595,9 @@ type Query {
 }
 
 type Mutation {
-    createHackathon(input: HackathonCreateInput!): Hackathon!
-    updateHackathon(id: ID!, input: HackathonUpdateInput!): Hackathon!
-    deleteHackathon(id: ID!): Boolean!
+    createHackathon(input: HackathonCreateInput!): Hackathon! @hasRole(role: ADMIN)
+    updateHackathon(id: ID!, input: HackathonUpdateInput!): Hackathon! @hasRole(role: ADMIN)
+    deleteHackathon(id: ID!): Boolean! @hasRole(role: ADMIN)
 }
 `, BuiltIn: false},
 	{Name: "../../federation/directives.graphql", Input: `
@@ -624,6 +640,36 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.Role
+	if tmp, ok := rawArgs["role"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+		arg0, err = ec.unmarshalNRole2githubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐRole(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["role"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) dir_pagination_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["maxLength"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxLength"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["maxLength"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Entity_findEventByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1685,8 +1731,32 @@ func (ec *executionContext) _Mutation_createHackathon(ctx context.Context, field
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateHackathon(rctx, fc.Args["input"].(model.HackathonCreateInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateHackathon(rctx, fc.Args["input"].(model.HackathonCreateInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Hackathon); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/KnightHacks/knighthacks_hackathon/graph/model.Hackathon`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1758,8 +1828,32 @@ func (ec *executionContext) _Mutation_updateHackathon(ctx context.Context, field
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateHackathon(rctx, fc.Args["id"].(string), fc.Args["input"].(model.HackathonUpdateInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateHackathon(rctx, fc.Args["id"].(string), fc.Args["input"].(model.HackathonUpdateInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Hackathon); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/KnightHacks/knighthacks_hackathon/graph/model.Hackathon`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1831,8 +1925,32 @@ func (ec *executionContext) _Mutation_deleteHackathon(ctx context.Context, field
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteHackathon(rctx, fc.Args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteHackathon(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5849,6 +5967,16 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNRole2githubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐRole(ctx context.Context, v interface{}) (models.Role, error) {
+	var res models.Role
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRole2githubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐRole(ctx context.Context, sel ast.SelectionSet, v models.Role) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNSemester2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSemester(ctx context.Context, v interface{}) (model.Semester, error) {

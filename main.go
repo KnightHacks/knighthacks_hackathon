@@ -7,10 +7,12 @@ import (
 	"github.com/KnightHacks/knighthacks_hackathon/graph"
 	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
 	"github.com/KnightHacks/knighthacks_hackathon/repository"
+	"github.com/KnightHacks/knighthacks_shared/auth"
+	"github.com/KnightHacks/knighthacks_shared/pagination"
 	"github.com/KnightHacks/knighthacks_shared/utils"
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
-	"net/http"
 	"os"
 )
 
@@ -27,11 +29,46 @@ func main() {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{Repository: repository.NewDatabaseRepository(pool)}}))
+	newAuth, err := auth.NewAuthWithEnvironment()
+	if err != nil {
+		log.Fatalf("An error occured when trying to create an instance of Auth: %s\n", err)
+	}
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	ginRouter := gin.Default()
+	ginRouter.Use(auth.AuthContextMiddleware(newAuth))
+	ginRouter.Use(utils.GinContextMiddleware())
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	ginRouter.POST("/query", graphqlHandler(newAuth, pool))
+	ginRouter.GET("/", playgroundHandler())
+
+	log.Fatal(ginRouter.Run(":" + port))
+}
+
+func graphqlHandler(a *auth.Auth, pool *pgxpool.Pool) gin.HandlerFunc {
+	// TODO: Sponsor doesn't have a sense of ownership, maybe we should have sponsor linked users?
+
+	hasRoleDirective := auth.HasRoleDirective{GetUserId: auth.DefaultGetUserId}
+
+	config := generated.Config{
+		Resolvers: &graph.Resolver{
+			Repository: repository.NewDatabaseRepository(pool),
+			Auth:       a,
+		},
+		Directives: generated.DirectiveRoot{
+			HasRole:    hasRoleDirective.Direct,
+			Pagination: pagination.Pagination,
+		},
+	}
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(config))
+	return func(c *gin.Context) {
+		srv.ServeHTTP(c.Writer, c.Request)
+	}
+}
+
+func playgroundHandler() gin.HandlerFunc {
+	h := playground.Handler("GraphQL", "/query")
+
+	return func(c *gin.Context) {
+		h.ServeHTTP(c.Writer, c.Request)
+	}
 }
