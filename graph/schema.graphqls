@@ -62,8 +62,10 @@ input HackathonFilter {
 input HackathonCreateInput {
     year: Int!
     semester: Semester!
-    sponsors: [ID!]
-    events: [ID!]
+    sponsors: [ID!]!
+    events: [ID!]!
+    startDate: Time!
+    endDate: Time!
 }
 
 input HackathonUpdateInput {

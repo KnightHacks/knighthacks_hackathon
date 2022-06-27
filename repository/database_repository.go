@@ -8,6 +8,7 @@ import (
 	"github.com/KnightHacks/knighthacks_shared/structure"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"strconv"
 )
 
 //DatabaseRepository
@@ -29,8 +30,64 @@ func NewDatabaseRepository(databasePool *pgxpool.Pool) *DatabaseRepository {
 }
 
 func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.HackathonCreateInput) (*model.Hackathon, error) {
-	//TODO implement me
-	panic("implement me")
+	// TODO: Implement handling of Sponsors & Events, pretty sure these lists will be empty...
+	var hackathon model.Hackathon
+	term := model.Term{
+		Year:     input.Year,
+		Semester: input.Semester,
+	}
+
+	var queryable database.Queryable = r.DatabasePool
+
+	termId, ok := r.TermBiMap.Get(term).(int)
+	var err error
+	if !ok {
+		tx, err := r.DatabasePool.Begin(ctx)
+		if err != nil {
+			return nil, err
+		}
+		queryable = tx
+
+		termId, err = r.getTermId(ctx, queryable, term.Year, term.Semester)
+		if err != nil {
+			if errors.Is(err, NoHackathonByTerm) {
+				err = queryable.QueryRow(
+					ctx,
+					"INSERT INTO terms (year, semester) VALUES ($1, $2) RETURNING id",
+					input.Year,
+					input.Semester.String(),
+				).Scan(&termId)
+				if err != nil {
+					return nil, err
+				}
+			}
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, nil
+			}
+			return nil, err
+		}
+		r.TermBiMap.Put(termId, term)
+		defer func(tx pgx.Tx, ctx context.Context) {
+			err = tx.Commit(ctx)
+		}(tx, ctx)
+	}
+
+	var hackathonIdInt int
+	if err = queryable.QueryRow(
+		ctx,
+		"INSERT INTO hackathons (term_id, start_date, end_date) VALUES ($1, $2, $3) RETURNING id",
+		termId,
+		input.StartDate,
+		input.EndDate,
+	).Scan(&hackathonIdInt); err != nil {
+		return nil, err
+	}
+	hackathon.ID = strconv.Itoa(hackathonIdInt)
+
+	if err != nil {
+		return nil, err
+	}
+	return &hackathon, err
 }
 
 func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, input *model.HackathonUpdateInput) (*model.Hackathon, error) {

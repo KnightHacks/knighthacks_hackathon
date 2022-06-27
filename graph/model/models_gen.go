@@ -30,10 +30,12 @@ type Hackathon struct {
 func (Hackathon) IsEntity() {}
 
 type HackathonCreateInput struct {
-	Year     int      `json:"year"`
-	Semester Semester `json:"semester"`
-	Sponsors []string `json:"sponsors"`
-	Events   []string `json:"events"`
+	Year      int       `json:"year"`
+	Semester  Semester  `json:"semester"`
+	Sponsors  []string  `json:"sponsors"`
+	Events    []string  `json:"events"`
+	StartDate time.Time `json:"startDate"`
+	EndDate   time.Time `json:"endDate"`
 }
 
 type HackathonFilter struct {
