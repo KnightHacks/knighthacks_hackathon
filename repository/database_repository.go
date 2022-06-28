@@ -20,6 +20,7 @@ type DatabaseRepository struct {
 
 var (
 	NoHackathonByTerm = errors.New("unable to find hackathon by term")
+	HackathonNotFound = errors.New("hackathon not found")
 )
 
 func NewDatabaseRepository(databasePool *pgxpool.Pool) *DatabaseRepository {
@@ -91,8 +92,67 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 }
 
 func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, input *model.HackathonUpdateInput) (*model.Hackathon, error) {
-	//TODO implement me
-	panic("implement me")
+	if input.Year == nil && input.Semester == nil && len(input.AddedEvents) == 0 && len(input.DeletedEvents) == 0 && len(input.AddedSponsors) == 0 && len(input.DeletedSponsors) == 0 {
+		return nil, errors.New("empty input field")
+	}
+	var hackathon model.Hackathon
+
+	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		idInt, err := strconv.Atoi(id)
+		if err != nil {
+			return err
+		}
+		if input.Year != nil {
+			return r.updateHackathonYear(ctx, tx, idInt, *input.Year)
+		}
+		if input.Semester != nil {
+			return r.updateHackathonSemester(ctx, tx, idInt, *input.Semester)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &hackathon, nil
+}
+
+func (r *DatabaseRepository) updateHackathonYear(ctx context.Context, tx pgx.Tx, hackathonId int, year int) error {
+	// This sql statement updates the semester in the terms table where the id of the term row equals
+	// the term_id from the hackathons table where the id of that row is equal to the supplied hackathonId
+	exec, err := tx.Exec(
+		ctx,
+		"UPDATE terms SET year = $1 WHERE id IN (SELECT hackathons.term_id FROM hackathons WHERE hackathons.id = $2)",
+		year,
+		hackathonId,
+	)
+	if err != nil {
+		return err
+	}
+	if exec.RowsAffected() != 1 {
+		return HackathonNotFound
+	}
+	return nil
+}
+
+func (r *DatabaseRepository) updateHackathonSemester(ctx context.Context, tx pgx.Tx, hackathonId int, semester model.Semester) error {
+	// This sql statement updates the semester in the terms table where the id of the term row equals
+	// the term_id from the hackathons table where the id of that row is equal to the supplied hackathonId
+	exec, err := tx.Exec(
+		ctx,
+		"UPDATE terms SET semester = $1 WHERE id IN (SELECT hackathons.term_id FROM hackathons WHERE hackathons.id = $2)",
+		semester.String(),
+		hackathonId,
+	)
+	if err != nil {
+		return err
+	}
+	if exec.RowsAffected() != 1 {
+		return HackathonNotFound
+	}
+	return nil
 }
 
 func (r *DatabaseRepository) GetHackathon(ctx context.Context, id string) (*model.Hackathon, error) {
