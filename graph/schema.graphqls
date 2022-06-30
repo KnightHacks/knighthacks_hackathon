@@ -84,10 +84,12 @@ input HackathonCreateInput {
 input HackathonUpdateInput {
     year: Int
     semester: Semester
-    deletedSponsors: [ID!]
     addedSponsors: [ID!]
+    removedSponsors: [ID!]
     addedEvents: [ID!]
-    deletedEvents: [ID!]
+    removedEvents: [ID!]
+    addedParticipants: [ID!]
+    removedParticipants: [ID!]
 }
 
 type Query {

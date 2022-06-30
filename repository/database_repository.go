@@ -20,6 +20,7 @@ type DatabaseRepository struct {
 
 var (
 	NoHackathonByTerm = errors.New("unable to find hackathon by term")
+	HackathonNotFound = errors.New("hackathon not found")
 )
 
 func NewDatabaseRepository(databasePool *pgxpool.Pool) *DatabaseRepository {
@@ -91,8 +92,185 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 }
 
 func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, input *model.HackathonUpdateInput) (*model.Hackathon, error) {
-	//TODO implement me
-	panic("implement me")
+	if input.Year == nil &&
+		input.Semester == nil &&
+		len(input.AddedEvents) == 0 &&
+		len(input.RemovedEvents) == 0 &&
+		len(input.AddedSponsors) == 0 &&
+		len(input.RemovedSponsors) == 0 &&
+		len(input.AddedParticipants) == 0 &&
+		len(input.RemovedParticipants) == 0 {
+		return nil, errors.New("empty input field")
+	}
+	var hackathon model.Hackathon
+
+	tx, err := r.DatabasePool.Begin(ctx)
+	runTx := func(tx pgx.Tx, hackathonIdString string, input *model.HackathonUpdateInput) (err error) {
+		hackathonId, err := strconv.Atoi(hackathonIdString)
+		if err != nil {
+			return err
+		}
+		if input.Year != nil {
+			if err = r.updateHackathonYear(ctx, tx, hackathonId, *input.Year); err != nil {
+				return err
+			}
+		}
+		if input.Semester != nil {
+			if err = r.updateHackathonSemester(ctx, tx, hackathonId, *input.Semester); err != nil {
+				return err
+			}
+		}
+
+		if len(input.AddedEvents) > 0 {
+			if err = r.addHackathonEvents(ctx, tx, hackathonId, input.AddedEvents); err != nil {
+				return err
+			}
+		}
+		if len(input.RemovedEvents) > 0 {
+			if err = r.removeHackathonEvents(ctx, tx, input.RemovedEvents); err != nil {
+				return err
+			}
+		}
+
+		if len(input.AddedSponsors) > 0 {
+			if err = r.addHackathonSponsors(ctx, tx, hackathonId, input.AddedSponsors); err != nil {
+				return err
+			}
+		}
+		if len(input.RemovedSponsors) > 0 {
+			if err = r.removeHackathonSponsors(ctx, tx, hackathonId, input.RemovedSponsors); err != nil {
+				return err
+			}
+		}
+
+		if len(input.AddedParticipants) > 0 {
+			if err = r.addHackathonParticipants(ctx, tx, hackathonId, input.AddedParticipants); err != nil {
+				return err
+			}
+		}
+		if len(input.RemovedParticipants) > 0 {
+			if err = r.removeHackathonParticipants(ctx, tx, hackathonId, input.RemovedParticipants); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	err = runTx(tx, id, input)
+	if err != nil {
+		err = tx.Rollback(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &hackathon, nil
+}
+
+func (r *DatabaseRepository) updateHackathonYear(ctx context.Context, tx pgx.Tx, hackathonId int, year int) error {
+	// This sql statement updates the semester in the terms table where the id of the term row equals
+	// the term_id from the hackathons table where the id of that row is equal to the supplied hackathonId
+	exec, err := tx.Exec(
+		ctx,
+		"UPDATE terms SET year = $1 WHERE id IN (SELECT hackathons.term_id FROM hackathons WHERE hackathons.id = $2)",
+		year,
+		hackathonId,
+	)
+	if err != nil {
+		return err
+	}
+	if exec.RowsAffected() != 1 {
+		return HackathonNotFound
+	}
+	return nil
+}
+
+func (r *DatabaseRepository) updateHackathonSemester(ctx context.Context, tx pgx.Tx, hackathonId int, semester model.Semester) error {
+	// This sql statement updates the semester in the terms table where the id of the term row equals
+	// the term_id from the hackathons table where the id of that row is equal to the supplied hackathonId
+	exec, err := tx.Exec(
+		ctx,
+		"UPDATE terms SET semester = $1 WHERE id IN (SELECT hackathons.term_id FROM hackathons WHERE hackathons.id = $2)",
+		semester.String(),
+		hackathonId,
+	)
+	if err != nil {
+		return err
+	}
+	if exec.RowsAffected() != 1 {
+		return HackathonNotFound
+	}
+	return nil
+}
+
+func (r *DatabaseRepository) addHackathonEvents(ctx context.Context, tx pgx.Tx, hackathonId int, events []string) error {
+	for _, eventId := range events {
+		if err := r.updateHackathonEvent(ctx, tx, eventId, &hackathonId); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *DatabaseRepository) removeHackathonEvents(ctx context.Context, tx pgx.Tx, events []string) error {
+	for _, eventId := range events {
+		if err := r.updateHackathonEvent(ctx, tx, eventId, nil); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *DatabaseRepository) updateHackathonEvent(ctx context.Context, tx pgx.Tx, eventId string, value *int) error {
+	exec, err := tx.Exec(ctx, "UPDATE events SET hackathon_id = $1 WHERE id = $2", value, eventId)
+	if err != nil {
+		return err
+	}
+	if exec.RowsAffected() == 0 {
+		return errors.New("unable to find event")
+	}
+	return nil
+}
+
+func (r *DatabaseRepository) addHackathonSponsors(ctx context.Context, tx pgx.Tx, hackathonId int, sponsors []string) error {
+	for _, sponsorId := range sponsors {
+		_, err := tx.Exec(ctx, "INSERT INTO hackathon_sponsors (hackathon_id, sponsor_id) VALUES ($1, $2)", hackathonId, sponsorId)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *DatabaseRepository) removeHackathonSponsors(ctx context.Context, tx pgx.Tx, hackathonId int, sponsors []string) error {
+	for _, sponsorId := range sponsors {
+		_, err := tx.Exec(ctx, "DELETE FROM hackathon_sponsors WHERE hackathon_id = $1 AND sponsor_id = $2", hackathonId, sponsorId)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *DatabaseRepository) addHackathonParticipants(ctx context.Context, tx pgx.Tx, hackathonId int, participants []string) error {
+	for _, participantId := range participants {
+		_, err := tx.Exec(ctx, "INSERT INTO hackathon_participants (hackathon_id, user_id) VALUES ($1, $2)", hackathonId, participantId)
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
+func (r *DatabaseRepository) removeHackathonParticipants(ctx context.Context, tx pgx.Tx, hackathonId int, participants []string) error {
+	for _, participantId := range participants {
+		_, err := tx.Exec(ctx, "DELETE FROM hackathon_participants WHERE hackathon_id = $1 AND user_id = $2", hackathonId, participantId)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *DatabaseRepository) GetHackathon(ctx context.Context, id string) (*model.Hackathon, error) {

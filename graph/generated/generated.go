@@ -582,10 +582,12 @@ input HackathonCreateInput {
 input HackathonUpdateInput {
     year: Int
     semester: Semester
-    deletedSponsors: [ID!]
     addedSponsors: [ID!]
+    removedSponsors: [ID!]
     addedEvents: [ID!]
-    deletedEvents: [ID!]
+    removedEvents: [ID!]
+    addedParticipants: [ID!]
+    removedParticipants: [ID!]
 }
 
 type Query {
@@ -4661,19 +4663,19 @@ func (ec *executionContext) unmarshalInputHackathonUpdateInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
-		case "deletedSponsors":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deletedSponsors"))
-			it.DeletedSponsors, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "addedSponsors":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addedSponsors"))
 			it.AddedSponsors, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "removedSponsors":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removedSponsors"))
+			it.RemovedSponsors, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4685,11 +4687,27 @@ func (ec *executionContext) unmarshalInputHackathonUpdateInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
-		case "deletedEvents":
+		case "removedEvents":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deletedEvents"))
-			it.DeletedEvents, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removedEvents"))
+			it.RemovedEvents, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "addedParticipants":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addedParticipants"))
+			it.AddedParticipants, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "removedParticipants":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removedParticipants"))
+			it.RemovedParticipants, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
