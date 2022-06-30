@@ -104,44 +104,64 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, inp
 	}
 	var hackathon model.Hackathon
 
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		hackathonId, err := strconv.Atoi(id)
+	tx, err := r.DatabasePool.Begin(ctx)
+	runTx := func(tx pgx.Tx, hackathonIdString string, input *model.HackathonUpdateInput) (err error) {
+		hackathonId, err := strconv.Atoi(hackathonIdString)
 		if err != nil {
 			return err
 		}
 		if input.Year != nil {
-			return r.updateHackathonYear(ctx, tx, hackathonId, *input.Year)
+			if err = r.updateHackathonYear(ctx, tx, hackathonId, *input.Year); err != nil {
+				return err
+			}
 		}
 		if input.Semester != nil {
-			return r.updateHackathonSemester(ctx, tx, hackathonId, *input.Semester)
+			if err = r.updateHackathonSemester(ctx, tx, hackathonId, *input.Semester); err != nil {
+				return err
+			}
 		}
 
 		if len(input.AddedEvents) > 0 {
-			return r.addHackathonEvents(ctx, tx, hackathonId, input.AddedEvents)
+			if err = r.addHackathonEvents(ctx, tx, hackathonId, input.AddedEvents); err != nil {
+				return err
+			}
 		}
 		if len(input.RemovedEvents) > 0 {
-			return r.removeHackathonEvents(ctx, tx, input.RemovedEvents)
+			if err = r.removeHackathonEvents(ctx, tx, input.RemovedEvents); err != nil {
+				return err
+			}
 		}
 
 		if len(input.AddedSponsors) > 0 {
-			return r.addHackathonSponsors(ctx, tx, hackathonId, input.AddedSponsors)
+			if err = r.addHackathonSponsors(ctx, tx, hackathonId, input.AddedSponsors); err != nil {
+				return err
+			}
 		}
 		if len(input.RemovedSponsors) > 0 {
-			return r.removeHackathonSponsors(ctx, tx, hackathonId, input.RemovedSponsors)
+			if err = r.removeHackathonSponsors(ctx, tx, hackathonId, input.RemovedSponsors); err != nil {
+				return err
+			}
 		}
 
 		if len(input.AddedParticipants) > 0 {
-			return r.addHackathonParticipants(ctx, tx, hackathonId, input.AddedParticipants)
+			if err = r.addHackathonParticipants(ctx, tx, hackathonId, input.AddedParticipants); err != nil {
+				return err
+			}
 		}
 		if len(input.RemovedParticipants) > 0 {
-			return r.removeHackathonParticipants(ctx, tx, hackathonId, input.RemovedParticipants)
+			if err = r.removeHackathonParticipants(ctx, tx, hackathonId, input.RemovedParticipants); err != nil {
+				return err
+			}
 		}
-
 		return nil
-	})
+	}
 
+	err = runTx(tx, id, input)
 	if err != nil {
-		return nil, err
+		err = tx.Rollback(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &hackathon, nil
