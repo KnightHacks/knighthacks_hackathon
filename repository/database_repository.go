@@ -398,6 +398,58 @@ func (r *DatabaseRepository) GetCurrentHackathon(ctx context.Context) (*model.Ha
 }
 
 func (r *DatabaseRepository) GetHackathons(ctx context.Context, filter *model.HackathonFilter) ([]*model.Hackathon, error) {
-	//TODO implement me
-	panic("implement me")
+	var rows pgx.Rows
+	var err error
+
+	if filter.Semester != nil {
+		query := `
+SELECT hackathons.id,
+       hackathons.start_date,
+       hackathons.end_date,
+       terms.id,
+       terms.semester,
+       terms.year
+FROM hackathons
+         INNER JOIN terms ON hackathons.term_id = terms.id
+WHERE terms.year = $1
+  AND terms.semester = $2`
+		rows, err = r.DatabasePool.Query(ctx, query, filter.Year, filter.Semester)
+	} else {
+		query := `
+SELECT hackathons.id,
+       hackathons.start_date,
+       hackathons.end_date,
+       terms.id,
+       terms.semester,
+       terms.year
+FROM hackathons
+         INNER JOIN terms ON hackathons.term_id = terms.id
+WHERE terms.year = $1`
+		rows, err = r.DatabasePool.Query(ctx, query, filter.Year)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	hackathons := make([]*model.Hackathon, 0, 10)
+
+	for rows.Next() {
+		var hackathon = model.Hackathon{Term: new(model.Term)}
+		var termId int
+		err = rows.Scan(
+			&hackathon.ID,
+			&hackathon.StartDate,
+			&hackathon.EndDate,
+			&termId,
+			&hackathon.Term.Semester,
+			&hackathon.Term.Year,
+		)
+		if err != nil {
+			return nil, err
+		}
+		r.TermBiMap.Put(termId, hackathon.Term)
+		hackathons = append(hackathons, &hackathon)
+	}
+
+	return hackathons, err
 }
