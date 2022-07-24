@@ -68,19 +68,23 @@ type ComplexityRoot struct {
 	}
 
 	Hackathon struct {
-		Attendees func(childComplexity int) int
-		EndDate   func(childComplexity int) int
-		Events    func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Sponsors  func(childComplexity int) int
-		StartDate func(childComplexity int) int
-		Status    func(childComplexity int) int
-		Term      func(childComplexity int) int
+		Applicants func(childComplexity int) int
+		Attendees  func(childComplexity int) int
+		Attending  func(childComplexity int, userID string) int
+		EndDate    func(childComplexity int) int
+		Events     func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Sponsors   func(childComplexity int) int
+		StartDate  func(childComplexity int) int
+		Status     func(childComplexity int) int
+		Term       func(childComplexity int) int
 	}
 
 	Mutation struct {
+		AcceptApplicant func(childComplexity int, hackathonID string, userID string) int
 		CreateHackathon func(childComplexity int, input model.HackathonCreateInput) int
 		DeleteHackathon func(childComplexity int, id string) int
+		DenyApplicant   func(childComplexity int, hackathonID string, userID string) int
 		UpdateHackathon func(childComplexity int, id string, input model.HackathonUpdateInput) int
 	}
 
@@ -103,8 +107,9 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		Hackathons func(childComplexity int) int
-		ID         func(childComplexity int) int
+		AppliedHackathons  func(childComplexity int) int
+		AttendedHackathons func(childComplexity int) int
+		ID                 func(childComplexity int) int
 	}
 
 	_Service struct {
@@ -123,15 +128,19 @@ type EventResolver interface {
 	Hackathon(ctx context.Context, obj *model.Event) (*model.Hackathon, error)
 }
 type HackathonResolver interface {
+	Applicants(ctx context.Context, obj *model.Hackathon) ([]*model.User, error)
 	Attendees(ctx context.Context, obj *model.Hackathon) ([]*model.User, error)
 	Sponsors(ctx context.Context, obj *model.Hackathon) ([]*model.Sponsor, error)
 	Events(ctx context.Context, obj *model.Hackathon) ([]*model.Event, error)
 	Status(ctx context.Context, obj *model.Hackathon) (model.HackathonStatus, error)
+	Attending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error)
 }
 type MutationResolver interface {
 	CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error)
 	UpdateHackathon(ctx context.Context, id string, input model.HackathonUpdateInput) (*model.Hackathon, error)
 	DeleteHackathon(ctx context.Context, id string) (bool, error)
+	AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
+	DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
 }
 type QueryResolver interface {
 	CurrentHackathon(ctx context.Context) (*model.Hackathon, error)
@@ -142,7 +151,8 @@ type SponsorResolver interface {
 	Hackathons(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error)
 }
 type UserResolver interface {
-	Hackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error)
+	AttendedHackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error)
+	AppliedHackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error)
 }
 
 type executableSchema struct {
@@ -234,12 +244,31 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Event.ID(childComplexity), true
 
+	case "Hackathon.applicants":
+		if e.complexity.Hackathon.Applicants == nil {
+			break
+		}
+
+		return e.complexity.Hackathon.Applicants(childComplexity), true
+
 	case "Hackathon.attendees":
 		if e.complexity.Hackathon.Attendees == nil {
 			break
 		}
 
 		return e.complexity.Hackathon.Attendees(childComplexity), true
+
+	case "Hackathon.attending":
+		if e.complexity.Hackathon.Attending == nil {
+			break
+		}
+
+		args, err := ec.field_Hackathon_attending_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Hackathon.Attending(childComplexity, args["userId"].(string)), true
 
 	case "Hackathon.endDate":
 		if e.complexity.Hackathon.EndDate == nil {
@@ -290,6 +319,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Hackathon.Term(childComplexity), true
 
+	case "Mutation.acceptApplicant":
+		if e.complexity.Mutation.AcceptApplicant == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_acceptApplicant_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AcceptApplicant(childComplexity, args["hackathonId"].(string), args["userId"].(string)), true
+
 	case "Mutation.createHackathon":
 		if e.complexity.Mutation.CreateHackathon == nil {
 			break
@@ -313,6 +354,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteHackathon(childComplexity, args["id"].(string)), true
+
+	case "Mutation.denyApplicant":
+		if e.complexity.Mutation.DenyApplicant == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_denyApplicant_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DenyApplicant(childComplexity, args["hackathonId"].(string), args["userId"].(string)), true
 
 	case "Mutation.updateHackathon":
 		if e.complexity.Mutation.UpdateHackathon == nil {
@@ -404,12 +457,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Term.Year(childComplexity), true
 
-	case "User.hackathons":
-		if e.complexity.User.Hackathons == nil {
+	case "User.appliedHackathons":
+		if e.complexity.User.AppliedHackathons == nil {
 			break
 		}
 
-		return e.complexity.User.Hackathons(childComplexity), true
+		return e.complexity.User.AppliedHackathons(childComplexity), true
+
+	case "User.attendedHackathons":
+		if e.complexity.User.AttendedHackathons == nil {
+			break
+		}
+
+		return e.complexity.User.AttendedHackathons(childComplexity), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -528,7 +588,8 @@ extend type Event @key(fields: "id") {
 
 extend type User @key(fields: "id") {
     id: ID! @external
-    hackathons: [Hackathon!]! @goField(forceResolver: true)
+    attendedHackathons: [Hackathon!]! @goField(forceResolver: true)
+    appliedHackathons: [Hackathon!]! @goField(forceResolver: true)
 }
 
 extend type Sponsor @key(fields: "id") {
@@ -542,10 +603,13 @@ type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     startDate: Time!
     endDate: Time!
 
+    applicants: [User!]! @goField(forceResolver: true)
     attendees: [User!]! @goField(forceResolver: true)
     sponsors: [Sponsor!]! @goField(forceResolver: true)
     events: [Event!]! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
+
+    attending(userId: ID!): Boolean! @goField(forceResolver: true)
 }
 
 enum HackathonStatus {
@@ -600,6 +664,9 @@ type Mutation {
     createHackathon(input: HackathonCreateInput!): Hackathon! @hasRole(role: ADMIN)
     updateHackathon(id: ID!, input: HackathonUpdateInput!): Hackathon! @hasRole(role: ADMIN)
     deleteHackathon(id: ID!): Boolean! @hasRole(role: ADMIN)
+
+    acceptApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
+    denyApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
 }
 `, BuiltIn: false},
 	{Name: "../../federation/directives.graphql", Input: `
@@ -757,6 +824,45 @@ func (ec *executionContext) field_Entity_findUserByID_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Hackathon_attending_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_acceptApplicant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["hackathonId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hackathonId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["hackathonId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["userId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userId"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createHackathon_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -784,6 +890,30 @@ func (ec *executionContext) field_Mutation_deleteHackathon_args(ctx context.Cont
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_denyApplicant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["hackathonId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hackathonId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["hackathonId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["userId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userId"] = arg1
 	return args, nil
 }
 
@@ -1017,6 +1147,8 @@ func (ec *executionContext) fieldContext_Entity_findHackathonByID(ctx context.Co
 				return ec.fieldContext_Hackathon_startDate(ctx, field)
 			case "endDate":
 				return ec.fieldContext_Hackathon_endDate(ctx, field)
+			case "applicants":
+				return ec.fieldContext_Hackathon_applicants(ctx, field)
 			case "attendees":
 				return ec.fieldContext_Hackathon_attendees(ctx, field)
 			case "sponsors":
@@ -1025,6 +1157,8 @@ func (ec *executionContext) fieldContext_Entity_findHackathonByID(ctx context.Co
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "attending":
+				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
 		},
@@ -1090,6 +1224,8 @@ func (ec *executionContext) fieldContext_Entity_findHackathonByTermYearAndTermSe
 				return ec.fieldContext_Hackathon_startDate(ctx, field)
 			case "endDate":
 				return ec.fieldContext_Hackathon_endDate(ctx, field)
+			case "applicants":
+				return ec.fieldContext_Hackathon_applicants(ctx, field)
 			case "attendees":
 				return ec.fieldContext_Hackathon_attendees(ctx, field)
 			case "sponsors":
@@ -1098,6 +1234,8 @@ func (ec *executionContext) fieldContext_Entity_findHackathonByTermYearAndTermSe
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "attending":
+				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
 		},
@@ -1218,8 +1356,10 @@ func (ec *executionContext) fieldContext_Entity_findUserByID(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_User_id(ctx, field)
-			case "hackathons":
-				return ec.fieldContext_User_hackathons(ctx, field)
+			case "attendedHackathons":
+				return ec.fieldContext_User_attendedHackathons(ctx, field)
+			case "appliedHackathons":
+				return ec.fieldContext_User_appliedHackathons(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -1329,6 +1469,8 @@ func (ec *executionContext) fieldContext_Event_hackathon(ctx context.Context, fi
 				return ec.fieldContext_Hackathon_startDate(ctx, field)
 			case "endDate":
 				return ec.fieldContext_Hackathon_endDate(ctx, field)
+			case "applicants":
+				return ec.fieldContext_Hackathon_applicants(ctx, field)
 			case "attendees":
 				return ec.fieldContext_Hackathon_attendees(ctx, field)
 			case "sponsors":
@@ -1337,6 +1479,8 @@ func (ec *executionContext) fieldContext_Event_hackathon(ctx context.Context, fi
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "attending":
+				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
 		},
@@ -1526,6 +1670,58 @@ func (ec *executionContext) fieldContext_Hackathon_endDate(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Hackathon_applicants(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Hackathon_applicants(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Hackathon().Applicants(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Hackathon_applicants(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Hackathon",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "attendedHackathons":
+				return ec.fieldContext_User_attendedHackathons(ctx, field)
+			case "appliedHackathons":
+				return ec.fieldContext_User_appliedHackathons(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Hackathon_attendees(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Hackathon_attendees(ctx, field)
 	if err != nil {
@@ -1567,8 +1763,10 @@ func (ec *executionContext) fieldContext_Hackathon_attendees(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_User_id(ctx, field)
-			case "hackathons":
-				return ec.fieldContext_User_hackathons(ctx, field)
+			case "attendedHackathons":
+				return ec.fieldContext_User_attendedHackathons(ctx, field)
+			case "appliedHackathons":
+				return ec.fieldContext_User_appliedHackathons(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -1720,6 +1918,61 @@ func (ec *executionContext) fieldContext_Hackathon_status(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Hackathon_attending(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Hackathon_attending(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Hackathon().Attending(rctx, obj, fc.Args["userId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Hackathon_attending(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Hackathon",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Hackathon_attending_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createHackathon(ctx, field)
 	if err != nil {
@@ -1791,6 +2044,8 @@ func (ec *executionContext) fieldContext_Mutation_createHackathon(ctx context.Co
 				return ec.fieldContext_Hackathon_startDate(ctx, field)
 			case "endDate":
 				return ec.fieldContext_Hackathon_endDate(ctx, field)
+			case "applicants":
+				return ec.fieldContext_Hackathon_applicants(ctx, field)
 			case "attendees":
 				return ec.fieldContext_Hackathon_attendees(ctx, field)
 			case "sponsors":
@@ -1799,6 +2054,8 @@ func (ec *executionContext) fieldContext_Mutation_createHackathon(ctx context.Co
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "attending":
+				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
 		},
@@ -1888,6 +2145,8 @@ func (ec *executionContext) fieldContext_Mutation_updateHackathon(ctx context.Co
 				return ec.fieldContext_Hackathon_startDate(ctx, field)
 			case "endDate":
 				return ec.fieldContext_Hackathon_endDate(ctx, field)
+			case "applicants":
+				return ec.fieldContext_Hackathon_applicants(ctx, field)
 			case "attendees":
 				return ec.fieldContext_Hackathon_attendees(ctx, field)
 			case "sponsors":
@@ -1896,6 +2155,8 @@ func (ec *executionContext) fieldContext_Mutation_updateHackathon(ctx context.Co
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "attending":
+				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
 		},
@@ -1993,6 +2254,164 @@ func (ec *executionContext) fieldContext_Mutation_deleteHackathon(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_acceptApplicant(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_acceptApplicant(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AcceptApplicant(rctx, fc.Args["hackathonId"].(string), fc.Args["userId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_acceptApplicant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_acceptApplicant_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_denyApplicant(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_denyApplicant(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DenyApplicant(rctx, fc.Args["hackathonId"].(string), fc.Args["userId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_denyApplicant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_denyApplicant_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_currentHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_currentHackathon(ctx, field)
 	if err != nil {
@@ -2037,6 +2456,8 @@ func (ec *executionContext) fieldContext_Query_currentHackathon(ctx context.Cont
 				return ec.fieldContext_Hackathon_startDate(ctx, field)
 			case "endDate":
 				return ec.fieldContext_Hackathon_endDate(ctx, field)
+			case "applicants":
+				return ec.fieldContext_Hackathon_applicants(ctx, field)
 			case "attendees":
 				return ec.fieldContext_Hackathon_attendees(ctx, field)
 			case "sponsors":
@@ -2045,6 +2466,8 @@ func (ec *executionContext) fieldContext_Query_currentHackathon(ctx context.Cont
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "attending":
+				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
 		},
@@ -2099,6 +2522,8 @@ func (ec *executionContext) fieldContext_Query_hackathons(ctx context.Context, f
 				return ec.fieldContext_Hackathon_startDate(ctx, field)
 			case "endDate":
 				return ec.fieldContext_Hackathon_endDate(ctx, field)
+			case "applicants":
+				return ec.fieldContext_Hackathon_applicants(ctx, field)
 			case "attendees":
 				return ec.fieldContext_Hackathon_attendees(ctx, field)
 			case "sponsors":
@@ -2107,6 +2532,8 @@ func (ec *executionContext) fieldContext_Query_hackathons(ctx context.Context, f
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "attending":
+				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
 		},
@@ -2172,6 +2599,8 @@ func (ec *executionContext) fieldContext_Query_getHackathon(ctx context.Context,
 				return ec.fieldContext_Hackathon_startDate(ctx, field)
 			case "endDate":
 				return ec.fieldContext_Hackathon_endDate(ctx, field)
+			case "applicants":
+				return ec.fieldContext_Hackathon_applicants(ctx, field)
 			case "attendees":
 				return ec.fieldContext_Hackathon_attendees(ctx, field)
 			case "sponsors":
@@ -2180,6 +2609,8 @@ func (ec *executionContext) fieldContext_Query_getHackathon(ctx context.Context,
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "attending":
+				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
 		},
@@ -2521,6 +2952,8 @@ func (ec *executionContext) fieldContext_Sponsor_hackathons(ctx context.Context,
 				return ec.fieldContext_Hackathon_startDate(ctx, field)
 			case "endDate":
 				return ec.fieldContext_Hackathon_endDate(ctx, field)
+			case "applicants":
+				return ec.fieldContext_Hackathon_applicants(ctx, field)
 			case "attendees":
 				return ec.fieldContext_Hackathon_attendees(ctx, field)
 			case "sponsors":
@@ -2529,6 +2962,8 @@ func (ec *executionContext) fieldContext_Sponsor_hackathons(ctx context.Context,
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "attending":
+				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
 		},
@@ -2668,8 +3103,8 @@ func (ec *executionContext) fieldContext_User_id(ctx context.Context, field grap
 	return fc, nil
 }
 
-func (ec *executionContext) _User_hackathons(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_hackathons(ctx, field)
+func (ec *executionContext) _User_attendedHackathons(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_attendedHackathons(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2682,7 +3117,7 @@ func (ec *executionContext) _User_hackathons(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().Hackathons(rctx, obj)
+		return ec.resolvers.User().AttendedHackathons(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2699,7 +3134,7 @@ func (ec *executionContext) _User_hackathons(ctx context.Context, field graphql.
 	return ec.marshalNHackathon2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_hackathons(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_attendedHackathons(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -2715,6 +3150,8 @@ func (ec *executionContext) fieldContext_User_hackathons(ctx context.Context, fi
 				return ec.fieldContext_Hackathon_startDate(ctx, field)
 			case "endDate":
 				return ec.fieldContext_Hackathon_endDate(ctx, field)
+			case "applicants":
+				return ec.fieldContext_Hackathon_applicants(ctx, field)
 			case "attendees":
 				return ec.fieldContext_Hackathon_attendees(ctx, field)
 			case "sponsors":
@@ -2723,6 +3160,74 @@ func (ec *executionContext) fieldContext_User_hackathons(ctx context.Context, fi
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "attending":
+				return ec.fieldContext_Hackathon_attending(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_appliedHackathons(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_appliedHackathons(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().AppliedHackathons(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Hackathon)
+	fc.Result = res
+	return ec.marshalNHackathon2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_appliedHackathons(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Hackathon_id(ctx, field)
+			case "term":
+				return ec.fieldContext_Hackathon_term(ctx, field)
+			case "startDate":
+				return ec.fieldContext_Hackathon_startDate(ctx, field)
+			case "endDate":
+				return ec.fieldContext_Hackathon_endDate(ctx, field)
+			case "applicants":
+				return ec.fieldContext_Hackathon_applicants(ctx, field)
+			case "attendees":
+				return ec.fieldContext_Hackathon_attendees(ctx, field)
+			case "sponsors":
+				return ec.fieldContext_Hackathon_sponsors(ctx, field)
+			case "events":
+				return ec.fieldContext_Hackathon_events(ctx, field)
+			case "status":
+				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "attending":
+				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
 		},
@@ -4993,6 +5498,26 @@ func (ec *executionContext) _Hackathon(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "applicants":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Hackathon_applicants(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "attendees":
 			field := field
 
@@ -5073,6 +5598,26 @@ func (ec *executionContext) _Hackathon(ctx context.Context, sel ast.SelectionSet
 				return innerFunc(ctx)
 
 			})
+		case "attending":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Hackathon_attending(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5125,6 +5670,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteHackathon(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "acceptApplicant":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_acceptApplicant(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "denyApplicant":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_denyApplicant(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -5395,7 +5958,7 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "hackathons":
+		case "attendedHackathons":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -5404,7 +5967,27 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._User_hackathons(ctx, field, obj)
+				res = ec._User_attendedHackathons(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "appliedHackathons":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_appliedHackathons(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

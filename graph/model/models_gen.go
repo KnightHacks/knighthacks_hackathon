@@ -17,14 +17,16 @@ type Event struct {
 func (Event) IsEntity() {}
 
 type Hackathon struct {
-	ID        string          `json:"id"`
-	Term      *Term           `json:"term"`
-	StartDate time.Time       `json:"startDate"`
-	EndDate   time.Time       `json:"endDate"`
-	Attendees []*User         `json:"attendees"`
-	Sponsors  []*Sponsor      `json:"sponsors"`
-	Events    []*Event        `json:"events"`
-	Status    HackathonStatus `json:"status"`
+	ID         string          `json:"id"`
+	Term       *Term           `json:"term"`
+	StartDate  time.Time       `json:"startDate"`
+	EndDate    time.Time       `json:"endDate"`
+	Applicants []*User         `json:"applicants"`
+	Attendees  []*User         `json:"attendees"`
+	Sponsors   []*Sponsor      `json:"sponsors"`
+	Events     []*Event        `json:"events"`
+	Status     HackathonStatus `json:"status"`
+	Attending  bool            `json:"attending"`
 }
 
 func (Hackathon) IsEntity() {}
@@ -67,8 +69,9 @@ type Term struct {
 }
 
 type User struct {
-	ID         string       `json:"id"`
-	Hackathons []*Hackathon `json:"hackathons"`
+	ID                 string       `json:"id"`
+	AttendedHackathons []*Hackathon `json:"attendedHackathons"`
+	AppliedHackathons  []*Hackathon `json:"appliedHackathons"`
 }
 
 func (User) IsEntity() {}

@@ -30,7 +30,8 @@ extend type Event @key(fields: "id") {
 
 extend type User @key(fields: "id") {
     id: ID! @external
-    hackathons: [Hackathon!]! @goField(forceResolver: true)
+    attendedHackathons: [Hackathon!]! @goField(forceResolver: true)
+    appliedHackathons: [Hackathon!]! @goField(forceResolver: true)
 }
 
 extend type Sponsor @key(fields: "id") {
@@ -44,10 +45,13 @@ type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     startDate: Time!
     endDate: Time!
 
+    applicants: [User!]! @goField(forceResolver: true)
     attendees: [User!]! @goField(forceResolver: true)
     sponsors: [Sponsor!]! @goField(forceResolver: true)
     events: [Event!]! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
+
+    attending(userId: ID!): Boolean! @goField(forceResolver: true)
 }
 
 enum HackathonStatus {
@@ -102,4 +106,8 @@ type Mutation {
     createHackathon(input: HackathonCreateInput!): Hackathon! @hasRole(role: ADMIN)
     updateHackathon(id: ID!, input: HackathonUpdateInput!): Hackathon! @hasRole(role: ADMIN)
     deleteHackathon(id: ID!): Boolean! @hasRole(role: ADMIN)
+
+    acceptApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
+    denyApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
+    applyToHackathon(hackathonId: ID!): Boolean! @hasRole(role: NORMAL)
 }

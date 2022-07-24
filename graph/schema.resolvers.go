@@ -15,6 +15,10 @@ func (r *eventResolver) Hackathon(ctx context.Context, obj *model.Event) (*model
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *hackathonResolver) Applicants(ctx context.Context, obj *model.Hackathon) ([]*model.User, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *hackathonResolver) Attendees(ctx context.Context, obj *model.Hackathon) ([]*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -31,6 +35,10 @@ func (r *hackathonResolver) Status(ctx context.Context, obj *model.Hackathon) (m
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *hackathonResolver) Attending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error) {
 	return r.Repository.CreateHackathon(ctx, &input)
 }
@@ -41,6 +49,14 @@ func (r *mutationResolver) UpdateHackathon(ctx context.Context, id string, input
 
 func (r *mutationResolver) DeleteHackathon(ctx context.Context, id string) (bool, error) {
 	return r.Repository.DeleteHackathon(ctx, id)
+}
+
+func (r *mutationResolver) AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) CurrentHackathon(ctx context.Context) (*model.Hackathon, error) {
@@ -59,7 +75,11 @@ func (r *sponsorResolver) Hackathons(ctx context.Context, obj *model.Sponsor) ([
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *userResolver) Hackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {
+func (r *userResolver) AttendedHackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userResolver) AppliedHackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
