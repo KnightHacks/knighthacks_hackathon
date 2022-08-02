@@ -76,11 +76,11 @@ func (r *sponsorResolver) Hackathons(ctx context.Context, obj *model.Sponsor) ([
 }
 
 func (r *userResolver) AttendedHackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetHackathonsByUser(ctx, obj, true)
 }
 
 func (r *userResolver) AppliedHackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetHackathonsByUser(ctx, obj, false)
 }
 
 // Event returns generated.EventResolver implementation.
