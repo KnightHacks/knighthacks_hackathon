@@ -10,6 +10,7 @@ type Repository interface {
 	UpdateHackathon(ctx context.Context, id string, input *model.HackathonUpdateInput) (*model.Hackathon, error)
 	GetHackathon(ctx context.Context, id string) (*model.Hackathon, error)
 	GetHackathonByTermYearAndTermSemester(ctx context.Context, termYear int, termSemester model.Semester) (*model.Hackathon, error)
+	GetHackathonByEvent(ctx context.Context, obj *model.Event) (*model.Hackathon, error)
 
 	DeleteHackathon(ctx context.Context, id string) (bool, error)
 

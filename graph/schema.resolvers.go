@@ -12,7 +12,7 @@ import (
 )
 
 func (r *eventResolver) Hackathon(ctx context.Context, obj *model.Event) (*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetHackathonByEvent(ctx, obj)
 }
 
 func (r *hackathonResolver) Applicants(ctx context.Context, obj *model.Hackathon) ([]*model.User, error) {

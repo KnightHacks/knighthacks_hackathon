@@ -607,3 +607,34 @@ WHERE hackathon_participants.user_id = $1 AND hackathon_participants.accepted_da
 
 	return hackathons, err
 }
+
+func (r *DatabaseRepository) GetHackathonByEvent(ctx context.Context, obj *model.Event) (*model.Hackathon, error) {
+	intId, err := strconv.Atoi(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	var hackathon = model.Hackathon{Term: new(model.Term)}
+	var termId int
+	row := r.DatabasePool.QueryRow(ctx, `SELECT hackathons.id,
+       hackathons.start_date,
+       hackathons.end_date,
+       terms.id,
+       terms.semester,
+       terms.year
+FROM hackathons
+         FULL JOIN terms ON hackathons.term_id = terms.id
+         INNER JOIN events on hackathons.id = events.hackathon_id
+WHERE events.id = $1`, intId)
+
+	err = row.Scan(&hackathon.ID,
+		&hackathon.StartDate,
+		&hackathon.EndDate,
+		&termId,
+		&hackathon.Term.Semester,
+		&hackathon.Term.Year)
+	if err != nil {
+		return nil, err
+	}
+	r.TermBiMap.Put(termId, hackathon.Term)
+	return &hackathon, err
+}
