@@ -20,4 +20,6 @@ type Repository interface {
 	// Array returns
 
 	GetHackathons(ctx context.Context, filter *model.HackathonFilter) ([]*model.Hackathon, error)
+
+	GetHackathonsBySponsor(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error)
 }

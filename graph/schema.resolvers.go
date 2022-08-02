@@ -72,7 +72,7 @@ func (r *queryResolver) GetHackathon(ctx context.Context, id string) (*model.Hac
 }
 
 func (r *sponsorResolver) Hackathons(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetHackathonsBySponsor(ctx, obj)
 }
 
 func (r *userResolver) AttendedHackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {

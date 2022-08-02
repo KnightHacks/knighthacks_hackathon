@@ -509,3 +509,45 @@ func (r *DatabaseRepository) DenyApplicant(ctx context.Context, hackathonID stri
 
 	return true, nil
 }
+
+func (r *DatabaseRepository) GetHackathonsBySponsor(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error) {
+	query := `
+SELECT hackathons.id,
+       hackathons.start_date,
+       hackathons.end_date,
+       terms.id,
+       terms.semester,
+       terms.year
+FROM hackathons
+         FULL JOIN terms ON hackathons.term_id = terms.id
+         INNER JOIN hackathon_sponsors on hackathons.id = hackathon_sponsors.hackathon_id
+WHERE hackathon_sponsors.sponsor_id = 1`
+
+	intId, err := strconv.Atoi(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := r.DatabasePool.Query(ctx, query, intId)
+	hackathons := make([]*model.Hackathon, 0, 10)
+
+	for rows.Next() {
+		var hackathon = model.Hackathon{Term: new(model.Term)}
+		var termId int
+		err = rows.Scan(
+			&hackathon.ID,
+			&hackathon.StartDate,
+			&hackathon.EndDate,
+			&termId,
+			&hackathon.Term.Semester,
+			&hackathon.Term.Year,
+		)
+		if err != nil {
+			return nil, err
+		}
+		r.TermBiMap.Put(termId, hackathon.Term)
+		hackathons = append(hackathons, &hackathon)
+	}
+
+	return hackathons, err
+}
