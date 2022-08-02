@@ -8,7 +8,9 @@ import (
 	"github.com/KnightHacks/knighthacks_shared/structure"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"log"
 	"strconv"
+	"time"
 )
 
 //DatabaseRepository
@@ -452,4 +454,58 @@ WHERE terms.year = $1`
 	}
 
 	return hackathons, err
+}
+
+func (r *DatabaseRepository) AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
+	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		var acceptedDate *time.Time
+		err := tx.QueryRow(ctx, "SELECT accepted_date FROM hackathon_participants WHERE user_id = $1 AND hackathon_id = $2", hackathonID, userID).Scan(acceptedDate)
+		if err != nil {
+			return err
+		}
+		log.Printf("acceptedDate=%v\n", acceptedDate)
+		if acceptedDate == nil {
+			// TODO: check how this is handled, maybe the accepted is null in postgres but the pgx representation is just 0 time?
+			_, err = tx.Exec(ctx, "INSERT INTO hackathon_participants (user_id, hackathon_id, accepted_date) VALUES ($1, $2, $3)", userID, hackathonID, time.Now().UTC())
+			if err != nil {
+				return err
+			}
+		} else {
+			return errors.New("this user has already been accepted to this hackathon")
+		}
+		return nil
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (r *DatabaseRepository) DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
+	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		var acceptedDate *time.Time
+		err := tx.QueryRow(ctx, "SELECT accepted_date FROM hackathon_participants WHERE user_id = $1 AND hackathon_id = $2", hackathonID, userID).Scan(acceptedDate)
+		if err != nil {
+			return err
+		}
+		log.Printf("acceptedDate=%v\n", acceptedDate)
+		if acceptedDate != nil {
+			// TODO: check how this is handled, maybe the accepted is null in postgres but the pgx representation is just 0 time?
+			return errors.New("this user has already been accepted to this hackathon")
+		} else {
+			_, err = tx.Exec(ctx, "DELETE FROM hackathon_participants WHERE user_id = $1 AND hackathon_id = $2", userID, hackathonID)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

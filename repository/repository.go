@@ -15,6 +15,8 @@ type Repository interface {
 
 	GetCurrentHackathon(ctx context.Context) (*model.Hackathon, error)
 
+	AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
+	DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
 	// Array returns
 
 	GetHackathons(ctx context.Context, filter *model.HackathonFilter) ([]*model.Hackathon, error)

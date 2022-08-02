@@ -52,11 +52,11 @@ func (r *mutationResolver) DeleteHackathon(ctx context.Context, id string) (bool
 }
 
 func (r *mutationResolver) AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.AcceptApplicant(ctx, hackathonID, userID)
 }
 
 func (r *mutationResolver) DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.DenyApplicant(ctx, hackathonID, userID)
 }
 
 func (r *queryResolver) CurrentHackathon(ctx context.Context) (*model.Hackathon, error) {
