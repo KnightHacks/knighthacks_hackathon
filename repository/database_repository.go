@@ -521,7 +521,7 @@ SELECT hackathons.id,
 FROM hackathons
          FULL JOIN terms ON hackathons.term_id = terms.id
          INNER JOIN hackathon_sponsors on hackathons.id = hackathon_sponsors.hackathon_id
-WHERE hackathon_sponsors.sponsor_id = 1`
+WHERE hackathon_sponsors.sponsor_id = $1`
 
 	intId, err := strconv.Atoi(obj.ID)
 	if err != nil {
