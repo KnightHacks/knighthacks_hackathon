@@ -56,6 +56,8 @@ func (r *mutationResolver) AcceptApplicant(ctx context.Context, hackathonID stri
 }
 
 func (r *mutationResolver) DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
+	// remove user from hackathon_participants table
+
 	panic(fmt.Errorf("not implemented"))
 }
 
