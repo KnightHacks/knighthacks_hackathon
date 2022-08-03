@@ -35,8 +35,12 @@ func (r *hackathonResolver) Status(ctx context.Context, obj *model.Hackathon) (m
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *hackathonResolver) Pending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error) {
+	return r.Repository.IsUserPending(ctx, obj, userID)
+}
+
 func (r *hackathonResolver) Attending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.IsUserAttending(ctx, obj, userID)
 }
 
 func (r *mutationResolver) CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error) {
@@ -57,6 +61,10 @@ func (r *mutationResolver) AcceptApplicant(ctx context.Context, hackathonID stri
 
 func (r *mutationResolver) DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
 	return r.Repository.DenyApplicant(ctx, hackathonID, userID)
+}
+
+func (r *mutationResolver) ApplyToHackathon(ctx context.Context, hackathonID string) (bool, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) CurrentHackathon(ctx context.Context) (*model.Hackathon, error) {

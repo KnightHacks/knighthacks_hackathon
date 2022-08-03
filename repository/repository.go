@@ -18,6 +18,10 @@ type Repository interface {
 
 	AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
 	DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
+
+	IsUserAttending(ctx context.Context, hackathon *model.Hackathon, userID string) (bool, error)
+	IsUserPending(ctx context.Context, hackathon *model.Hackathon, userID string) (bool, error)
+
 	// Array returns
 
 	GetHackathons(ctx context.Context, filter *model.HackathonFilter) ([]*model.Hackathon, error)

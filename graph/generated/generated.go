@@ -74,6 +74,7 @@ type ComplexityRoot struct {
 		EndDate    func(childComplexity int) int
 		Events     func(childComplexity int) int
 		ID         func(childComplexity int) int
+		Pending    func(childComplexity int, userID string) int
 		Sponsors   func(childComplexity int) int
 		StartDate  func(childComplexity int) int
 		Status     func(childComplexity int) int
@@ -81,11 +82,12 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AcceptApplicant func(childComplexity int, hackathonID string, userID string) int
-		CreateHackathon func(childComplexity int, input model.HackathonCreateInput) int
-		DeleteHackathon func(childComplexity int, id string) int
-		DenyApplicant   func(childComplexity int, hackathonID string, userID string) int
-		UpdateHackathon func(childComplexity int, id string, input model.HackathonUpdateInput) int
+		AcceptApplicant  func(childComplexity int, hackathonID string, userID string) int
+		ApplyToHackathon func(childComplexity int, hackathonID string) int
+		CreateHackathon  func(childComplexity int, input model.HackathonCreateInput) int
+		DeleteHackathon  func(childComplexity int, id string) int
+		DenyApplicant    func(childComplexity int, hackathonID string, userID string) int
+		UpdateHackathon  func(childComplexity int, id string, input model.HackathonUpdateInput) int
 	}
 
 	Query struct {
@@ -133,6 +135,7 @@ type HackathonResolver interface {
 	Sponsors(ctx context.Context, obj *model.Hackathon) ([]*model.Sponsor, error)
 	Events(ctx context.Context, obj *model.Hackathon) ([]*model.Event, error)
 	Status(ctx context.Context, obj *model.Hackathon) (model.HackathonStatus, error)
+	Pending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error)
 	Attending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error)
 }
 type MutationResolver interface {
@@ -141,6 +144,7 @@ type MutationResolver interface {
 	DeleteHackathon(ctx context.Context, id string) (bool, error)
 	AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
 	DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
+	ApplyToHackathon(ctx context.Context, hackathonID string) (bool, error)
 }
 type QueryResolver interface {
 	CurrentHackathon(ctx context.Context) (*model.Hackathon, error)
@@ -291,6 +295,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Hackathon.ID(childComplexity), true
 
+	case "Hackathon.pending":
+		if e.complexity.Hackathon.Pending == nil {
+			break
+		}
+
+		args, err := ec.field_Hackathon_pending_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Hackathon.Pending(childComplexity, args["userId"].(string)), true
+
 	case "Hackathon.sponsors":
 		if e.complexity.Hackathon.Sponsors == nil {
 			break
@@ -330,6 +346,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AcceptApplicant(childComplexity, args["hackathonId"].(string), args["userId"].(string)), true
+
+	case "Mutation.applyToHackathon":
+		if e.complexity.Mutation.ApplyToHackathon == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_applyToHackathon_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ApplyToHackathon(childComplexity, args["hackathonId"].(string)), true
 
 	case "Mutation.createHackathon":
 		if e.complexity.Mutation.CreateHackathon == nil {
@@ -609,6 +637,7 @@ type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     events: [Event!]! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
 
+    pending(userId: ID!): Boolean! @goField(forceResolver: true)
     attending(userId: ID!): Boolean! @goField(forceResolver: true)
 }
 
@@ -667,6 +696,7 @@ type Mutation {
 
     acceptApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
     denyApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
+    applyToHackathon(hackathonId: ID!): Boolean! @hasRole(role: NORMAL)
 }
 `, BuiltIn: false},
 	{Name: "../../federation/directives.graphql", Input: `
@@ -839,6 +869,21 @@ func (ec *executionContext) field_Hackathon_attending_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Hackathon_pending_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userId"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_acceptApplicant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -860,6 +905,21 @@ func (ec *executionContext) field_Mutation_acceptApplicant_args(ctx context.Cont
 		}
 	}
 	args["userId"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_applyToHackathon_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["hackathonId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hackathonId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["hackathonId"] = arg0
 	return args, nil
 }
 
@@ -1157,6 +1217,8 @@ func (ec *executionContext) fieldContext_Entity_findHackathonByID(ctx context.Co
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "pending":
+				return ec.fieldContext_Hackathon_pending(ctx, field)
 			case "attending":
 				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
@@ -1234,6 +1296,8 @@ func (ec *executionContext) fieldContext_Entity_findHackathonByTermYearAndTermSe
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "pending":
+				return ec.fieldContext_Hackathon_pending(ctx, field)
 			case "attending":
 				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
@@ -1479,6 +1543,8 @@ func (ec *executionContext) fieldContext_Event_hackathon(ctx context.Context, fi
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "pending":
+				return ec.fieldContext_Hackathon_pending(ctx, field)
 			case "attending":
 				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
@@ -1918,6 +1984,61 @@ func (ec *executionContext) fieldContext_Hackathon_status(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Hackathon_pending(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Hackathon_pending(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Hackathon().Pending(rctx, obj, fc.Args["userId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Hackathon_pending(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Hackathon",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Hackathon_pending_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Hackathon_attending(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Hackathon_attending(ctx, field)
 	if err != nil {
@@ -2054,6 +2175,8 @@ func (ec *executionContext) fieldContext_Mutation_createHackathon(ctx context.Co
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "pending":
+				return ec.fieldContext_Hackathon_pending(ctx, field)
 			case "attending":
 				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
@@ -2155,6 +2278,8 @@ func (ec *executionContext) fieldContext_Mutation_updateHackathon(ctx context.Co
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "pending":
+				return ec.fieldContext_Hackathon_pending(ctx, field)
 			case "attending":
 				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
@@ -2412,6 +2537,85 @@ func (ec *executionContext) fieldContext_Mutation_denyApplicant(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_applyToHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_applyToHackathon(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ApplyToHackathon(rctx, fc.Args["hackathonId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐRole(ctx, "NORMAL")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_applyToHackathon(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_applyToHackathon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_currentHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_currentHackathon(ctx, field)
 	if err != nil {
@@ -2466,6 +2670,8 @@ func (ec *executionContext) fieldContext_Query_currentHackathon(ctx context.Cont
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "pending":
+				return ec.fieldContext_Hackathon_pending(ctx, field)
 			case "attending":
 				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
@@ -2532,6 +2738,8 @@ func (ec *executionContext) fieldContext_Query_hackathons(ctx context.Context, f
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "pending":
+				return ec.fieldContext_Hackathon_pending(ctx, field)
 			case "attending":
 				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
@@ -2609,6 +2817,8 @@ func (ec *executionContext) fieldContext_Query_getHackathon(ctx context.Context,
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "pending":
+				return ec.fieldContext_Hackathon_pending(ctx, field)
 			case "attending":
 				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
@@ -2962,6 +3172,8 @@ func (ec *executionContext) fieldContext_Sponsor_hackathons(ctx context.Context,
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "pending":
+				return ec.fieldContext_Hackathon_pending(ctx, field)
 			case "attending":
 				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
@@ -3160,6 +3372,8 @@ func (ec *executionContext) fieldContext_User_attendedHackathons(ctx context.Con
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "pending":
+				return ec.fieldContext_Hackathon_pending(ctx, field)
 			case "attending":
 				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
@@ -3226,6 +3440,8 @@ func (ec *executionContext) fieldContext_User_appliedHackathons(ctx context.Cont
 				return ec.fieldContext_Hackathon_events(ctx, field)
 			case "status":
 				return ec.fieldContext_Hackathon_status(ctx, field)
+			case "pending":
+				return ec.fieldContext_Hackathon_pending(ctx, field)
 			case "attending":
 				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
@@ -5598,6 +5814,26 @@ func (ec *executionContext) _Hackathon(ctx context.Context, sel ast.SelectionSet
 				return innerFunc(ctx)
 
 			})
+		case "pending":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Hackathon_pending(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "attending":
 			field := field
 
@@ -5688,6 +5924,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_denyApplicant(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "applyToHackathon":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_applyToHackathon(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

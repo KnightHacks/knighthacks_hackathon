@@ -51,6 +51,7 @@ type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     events: [Event!]! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
 
+    pending(userId: ID!): Boolean! @goField(forceResolver: true)
     attending(userId: ID!): Boolean! @goField(forceResolver: true)
 }
 

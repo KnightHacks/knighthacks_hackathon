@@ -8,7 +8,8 @@ import (
 	"github.com/KnightHacks/knighthacks_shared/structure"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"log"
+	"github.com/rs/zerolog/log"
+
 	"strconv"
 	"time"
 )
@@ -637,4 +638,36 @@ WHERE events.id = $1`, intId)
 	}
 	r.TermBiMap.Put(termId, hackathon.Term)
 	return &hackathon, err
+}
+
+// TODO: Change attending/pending to a user status enum
+
+func (r *DatabaseRepository) IsUserAttending(ctx context.Context, hackathon *model.Hackathon, userID string) (bool, error) {
+	var exists int
+	err := r.DatabasePool.QueryRow(ctx, `SELECT 1
+FROM hackathon_participants
+WHERE user_id = $1
+  AND hackathon_id = $2
+  AND accepted_date IS NOT NULL`, userID, hackathon.ID).Scan(&exists)
+
+	if err != nil {
+		return false, err
+	}
+
+	return exists == 1, nil
+}
+
+func (r *DatabaseRepository) IsUserPending(ctx context.Context, hackathon *model.Hackathon, userID string) (bool, error) {
+	var exists int
+	err := r.DatabasePool.QueryRow(ctx, `SELECT 1
+FROM hackathon_participants
+WHERE user_id = $1
+  AND hackathon_id = $2
+  AND accepted_date IS NULL`, userID, hackathon.ID).Scan(&exists)
+
+	if err != nil {
+		return false, err
+	}
+
+	return exists == 1, nil
 }

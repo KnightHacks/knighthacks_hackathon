@@ -26,6 +26,7 @@ type Hackathon struct {
 	Sponsors   []*Sponsor      `json:"sponsors"`
 	Events     []*Event        `json:"events"`
 	Status     HackathonStatus `json:"status"`
+	Pending    bool            `json:"pending"`
 	Attending  bool            `json:"attending"`
 }
 
