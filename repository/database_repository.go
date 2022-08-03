@@ -372,7 +372,7 @@ func (r *DatabaseRepository) GetCurrentHackathon(ctx context.Context) (*model.Ha
 	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		var termId int
 		// TODO: Check validity of using DESC
-		err := tx.QueryRow(ctx, "SELECT TOP 1 id, term_id, start_date, end_date FROM hackathons WHERE end_date > @CurrentDate ORDER BY end_date DESC").Scan(
+		err := tx.QueryRow(ctx, "SELECT id, term_id, start_date, end_date FROM hackathons WHERE end_date > CURRENT_DATE ORDER BY end_date DESC LIMIT 1").Scan(
 			&hackathon.ID,
 			&termId,
 			&hackathon.StartDate,
