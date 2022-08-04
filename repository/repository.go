@@ -27,4 +27,9 @@ type Repository interface {
 	GetHackathons(ctx context.Context, filter *model.HackathonFilter) ([]*model.Hackathon, error)
 	GetHackathonsByUser(ctx context.Context, obj *model.User, attended bool) ([]*model.Hackathon, error)
 	GetHackathonsBySponsor(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error)
+
+	GetHackathonApplicants(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error)
+	GetHackathonAttendees(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error)
+	GetHackathonSponsors(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Sponsor, error)
+	GetHackathonEvents(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Event, error)
 }

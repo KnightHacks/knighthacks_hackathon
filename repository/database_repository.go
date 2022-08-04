@@ -671,3 +671,23 @@ WHERE user_id = $1
 
 	return exists == 1, nil
 }
+
+func (r *DatabaseRepository) GetHackathonApplicants(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) GetHackathonAttendees(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) GetHackathonSponsors(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Sponsor, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) GetHackathonEvents(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Event, error) {
+	//TODO implement me
+	panic("implement me")
+}

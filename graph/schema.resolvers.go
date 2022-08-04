@@ -16,19 +16,19 @@ func (r *eventResolver) Hackathon(ctx context.Context, obj *model.Event) (*model
 }
 
 func (r *hackathonResolver) Applicants(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetHackathonApplicants(ctx, obj, first, after)
 }
 
 func (r *hackathonResolver) Attendees(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetHackathonAttendees(ctx, obj, first, after)
 }
 
 func (r *hackathonResolver) Sponsors(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Sponsor, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetHackathonSponsors(ctx, obj, first, after)
 }
 
 func (r *hackathonResolver) Events(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Event, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetHackathonEvents(ctx, obj, first, after)
 }
 
 func (r *hackathonResolver) Status(ctx context.Context, obj *model.Hackathon) (model.HackathonStatus, error) {
