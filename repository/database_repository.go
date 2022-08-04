@@ -8,14 +8,14 @@ import (
 	"github.com/KnightHacks/knighthacks_shared/structure"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/rs/zerolog/log"
+	"log"
 
 	"strconv"
 	"time"
 )
 
-//DatabaseRepository
-//Implements the Repository interface's functions
+// DatabaseRepository
+// Implements the Repository interface's functions
 type DatabaseRepository struct {
 	DatabasePool *pgxpool.Pool
 	TermBiMap    *structure.BiMap
