@@ -45,10 +45,10 @@ type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     startDate: Time!
     endDate: Time!
 
-    applicants: [User!]! @goField(forceResolver: true)
-    attendees: [User!]! @goField(forceResolver: true)
-    sponsors: [Sponsor!]! @goField(forceResolver: true)
-    events: [Event!]! @goField(forceResolver: true)
+    applicants(first: Int! = 25, after: ID): [User!]! @goField(forceResolver: true)
+    attendees(first: Int! = 25, after: ID): [User!]! @goField(forceResolver: true)
+    sponsors(first: Int! = 25, after: ID): [Sponsor!]! @goField(forceResolver: true)
+    events(first: Int! = 25, after: ID): [Event!]! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
 
     pending(userId: ID!): Boolean! @goField(forceResolver: true)

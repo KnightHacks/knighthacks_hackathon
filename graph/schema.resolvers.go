@@ -15,19 +15,19 @@ func (r *eventResolver) Hackathon(ctx context.Context, obj *model.Event) (*model
 	return r.Repository.GetHackathonByEvent(ctx, obj)
 }
 
-func (r *hackathonResolver) Applicants(ctx context.Context, obj *model.Hackathon) ([]*model.User, error) {
+func (r *hackathonResolver) Applicants(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *hackathonResolver) Attendees(ctx context.Context, obj *model.Hackathon) ([]*model.User, error) {
+func (r *hackathonResolver) Attendees(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *hackathonResolver) Sponsors(ctx context.Context, obj *model.Hackathon) ([]*model.Sponsor, error) {
+func (r *hackathonResolver) Sponsors(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Sponsor, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *hackathonResolver) Events(ctx context.Context, obj *model.Hackathon) ([]*model.Event, error) {
+func (r *hackathonResolver) Events(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Event, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 

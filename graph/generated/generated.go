@@ -68,14 +68,14 @@ type ComplexityRoot struct {
 	}
 
 	Hackathon struct {
-		Applicants func(childComplexity int) int
-		Attendees  func(childComplexity int) int
+		Applicants func(childComplexity int, first int, after *string) int
+		Attendees  func(childComplexity int, first int, after *string) int
 		Attending  func(childComplexity int, userID string) int
 		EndDate    func(childComplexity int) int
-		Events     func(childComplexity int) int
+		Events     func(childComplexity int, first int, after *string) int
 		ID         func(childComplexity int) int
 		Pending    func(childComplexity int, userID string) int
-		Sponsors   func(childComplexity int) int
+		Sponsors   func(childComplexity int, first int, after *string) int
 		StartDate  func(childComplexity int) int
 		Status     func(childComplexity int) int
 		Term       func(childComplexity int) int
@@ -130,10 +130,10 @@ type EventResolver interface {
 	Hackathon(ctx context.Context, obj *model.Event) (*model.Hackathon, error)
 }
 type HackathonResolver interface {
-	Applicants(ctx context.Context, obj *model.Hackathon) ([]*model.User, error)
-	Attendees(ctx context.Context, obj *model.Hackathon) ([]*model.User, error)
-	Sponsors(ctx context.Context, obj *model.Hackathon) ([]*model.Sponsor, error)
-	Events(ctx context.Context, obj *model.Hackathon) ([]*model.Event, error)
+	Applicants(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error)
+	Attendees(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error)
+	Sponsors(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Sponsor, error)
+	Events(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Event, error)
 	Status(ctx context.Context, obj *model.Hackathon) (model.HackathonStatus, error)
 	Pending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error)
 	Attending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error)
@@ -253,14 +253,24 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Hackathon.Applicants(childComplexity), true
+		args, err := ec.field_Hackathon_applicants_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Hackathon.Applicants(childComplexity, args["first"].(int), args["after"].(*string)), true
 
 	case "Hackathon.attendees":
 		if e.complexity.Hackathon.Attendees == nil {
 			break
 		}
 
-		return e.complexity.Hackathon.Attendees(childComplexity), true
+		args, err := ec.field_Hackathon_attendees_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Hackathon.Attendees(childComplexity, args["first"].(int), args["after"].(*string)), true
 
 	case "Hackathon.attending":
 		if e.complexity.Hackathon.Attending == nil {
@@ -286,7 +296,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Hackathon.Events(childComplexity), true
+		args, err := ec.field_Hackathon_events_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Hackathon.Events(childComplexity, args["first"].(int), args["after"].(*string)), true
 
 	case "Hackathon.id":
 		if e.complexity.Hackathon.ID == nil {
@@ -312,7 +327,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Hackathon.Sponsors(childComplexity), true
+		args, err := ec.field_Hackathon_sponsors_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Hackathon.Sponsors(childComplexity, args["first"].(int), args["after"].(*string)), true
 
 	case "Hackathon.startDate":
 		if e.complexity.Hackathon.StartDate == nil {
@@ -631,10 +651,10 @@ type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     startDate: Time!
     endDate: Time!
 
-    applicants: [User!]! @goField(forceResolver: true)
-    attendees: [User!]! @goField(forceResolver: true)
-    sponsors: [Sponsor!]! @goField(forceResolver: true)
-    events: [Event!]! @goField(forceResolver: true)
+    applicants(first: Int! = 25, after: ID): [User!]! @goField(forceResolver: true)
+    attendees(first: Int! = 25, after: ID): [User!]! @goField(forceResolver: true)
+    sponsors(first: Int! = 25, after: ID): [Sponsor!]! @goField(forceResolver: true)
+    events(first: Int! = 25, after: ID): [Event!]! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
 
     pending(userId: ID!): Boolean! @goField(forceResolver: true)
@@ -854,6 +874,54 @@ func (ec *executionContext) field_Entity_findUserByID_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Hackathon_applicants_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Hackathon_attendees_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Hackathon_attending_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -869,6 +937,30 @@ func (ec *executionContext) field_Hackathon_attending_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Hackathon_events_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Hackathon_pending_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -881,6 +973,30 @@ func (ec *executionContext) field_Hackathon_pending_args(ctx context.Context, ra
 		}
 	}
 	args["userId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Hackathon_sponsors_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg1
 	return args, nil
 }
 
@@ -1750,7 +1866,7 @@ func (ec *executionContext) _Hackathon_applicants(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Hackathon().Applicants(rctx, obj)
+		return ec.resolvers.Hackathon().Applicants(rctx, obj, fc.Args["first"].(int), fc.Args["after"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1785,6 +1901,17 @@ func (ec *executionContext) fieldContext_Hackathon_applicants(ctx context.Contex
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Hackathon_applicants_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
 	return fc, nil
 }
 
@@ -1802,7 +1929,7 @@ func (ec *executionContext) _Hackathon_attendees(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Hackathon().Attendees(rctx, obj)
+		return ec.resolvers.Hackathon().Attendees(rctx, obj, fc.Args["first"].(int), fc.Args["after"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1837,6 +1964,17 @@ func (ec *executionContext) fieldContext_Hackathon_attendees(ctx context.Context
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Hackathon_attendees_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
 	return fc, nil
 }
 
@@ -1854,7 +1992,7 @@ func (ec *executionContext) _Hackathon_sponsors(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Hackathon().Sponsors(rctx, obj)
+		return ec.resolvers.Hackathon().Sponsors(rctx, obj, fc.Args["first"].(int), fc.Args["after"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1887,6 +2025,17 @@ func (ec *executionContext) fieldContext_Hackathon_sponsors(ctx context.Context,
 			return nil, fmt.Errorf("no field named %q was found under type Sponsor", field.Name)
 		},
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Hackathon_sponsors_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
 	return fc, nil
 }
 
@@ -1904,7 +2053,7 @@ func (ec *executionContext) _Hackathon_events(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Hackathon().Events(rctx, obj)
+		return ec.resolvers.Hackathon().Events(rctx, obj, fc.Args["first"].(int), fc.Args["after"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1936,6 +2085,17 @@ func (ec *executionContext) fieldContext_Hackathon_events(ctx context.Context, f
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Hackathon_events_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -7423,6 +7583,22 @@ func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalID(*v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
