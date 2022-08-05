@@ -35,7 +35,6 @@ func NewDatabaseRepository(databasePool *pgxpool.Pool) *DatabaseRepository {
 
 func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.HackathonCreateInput) (*model.Hackathon, error) {
 	// TODO: Implement handling of Sponsors & Events, pretty sure these lists will be empty...
-	var hackathon model.Hackathon
 	term := model.Term{
 		Year:     input.Year,
 		Semester: input.Semester,
@@ -86,12 +85,16 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 	).Scan(&hackathonIdInt); err != nil {
 		return nil, err
 	}
-	hackathon.ID = strconv.Itoa(hackathonIdInt)
 
 	if err != nil {
 		return nil, err
 	}
-	return &hackathon, err
+	return &model.Hackathon{
+		ID:        strconv.Itoa(hackathonIdInt),
+		Term:      &term,
+		StartDate: input.StartDate,
+		EndDate:   input.EndDate,
+	}, nil
 }
 
 func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, input *model.HackathonUpdateInput) (*model.Hackathon, error) {
