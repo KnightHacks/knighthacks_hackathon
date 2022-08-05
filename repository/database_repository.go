@@ -64,9 +64,6 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 					return nil, err
 				}
 			}
-			if errors.Is(err, pgx.ErrNoRows) {
-				return nil, nil
-			}
 			return nil, err
 		}
 		r.TermBiMap.Put(termId, term)
@@ -303,9 +300,6 @@ func (r *DatabaseRepository) GetHackathonByTermYearAndTermSemester(ctx context.C
 			if errors.Is(err, NoHackathonByTerm) {
 				return nil, nil
 			}
-			if errors.Is(err, pgx.ErrNoRows) {
-				return nil, nil
-			}
 			return nil, err
 		}
 		r.TermBiMap.Put(termId, term)
@@ -337,10 +331,9 @@ func (r *DatabaseRepository) getTermId(ctx context.Context, queryable database.Q
 	var termId *int
 	err := queryable.QueryRow(ctx, "SELECT id FROM terms WHERE year = $1 AND semester = $2", termYear, termSemester.String()).Scan(termId)
 	if err != nil {
-		return 0, err
-	}
-	if termId == nil {
-		return 0, NoHackathonByTerm
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, NoHackathonByTerm
+		}
 	}
 	return *termId, nil
 }
