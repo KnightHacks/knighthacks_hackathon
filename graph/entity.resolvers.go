@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-
 	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 )

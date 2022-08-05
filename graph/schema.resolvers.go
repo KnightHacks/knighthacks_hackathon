@@ -9,26 +9,75 @@ import (
 
 	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
+	"github.com/KnightHacks/knighthacks_shared/pagination"
 )
 
 func (r *eventResolver) Hackathon(ctx context.Context, obj *model.Event) (*model.Hackathon, error) {
 	return r.Repository.GetHackathonByEvent(ctx, obj)
 }
 
-func (r *hackathonResolver) Applicants(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error) {
-	return r.Repository.GetHackathonApplicants(ctx, obj, first, after)
+func (r *hackathonResolver) Applicants(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.UsersConnection, error) {
+	a, err := pagination.DecodeCursor(after)
+	if err != nil {
+		return nil, err
+	}
+	applicants, total, err := r.Repository.GetHackathonApplicants(ctx, obj, first, a)
+	if err != nil {
+		return nil, err
+	}
+	connection := model.UsersConnection{Users: applicants,
+		TotalCount: total,
+		PageInfo:   pagination.GetPageInfo(applicants[0].ID, applicants[len(applicants)-1].ID),
+	}
+	return &connection, nil
 }
 
-func (r *hackathonResolver) Attendees(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error) {
-	return r.Repository.GetHackathonAttendees(ctx, obj, first, after)
+func (r *hackathonResolver) Attendees(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.UsersConnection, error) {
+	a, err := pagination.DecodeCursor(after)
+	if err != nil {
+		return nil, err
+	}
+	attendees, total, err := r.Repository.GetHackathonAttendees(ctx, obj, first, a)
+	if err != nil {
+		return nil, err
+	}
+	connection := model.UsersConnection{Users: attendees,
+		TotalCount: total,
+		PageInfo:   pagination.GetPageInfo(attendees[0].ID, attendees[len(attendees)-1].ID),
+	}
+	return &connection, err
 }
 
-func (r *hackathonResolver) Sponsors(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Sponsor, error) {
-	return r.Repository.GetHackathonSponsors(ctx, obj, first, after)
+func (r *hackathonResolver) Sponsors(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.SponsorsConnection, error) {
+	a, err := pagination.DecodeCursor(after)
+	if err != nil {
+		return nil, err
+	}
+	sponsors, total, err := r.Repository.GetHackathonSponsors(ctx, obj, first, a)
+	if err != nil {
+		return nil, err
+	}
+	connection := model.SponsorsConnection{Sponsors: sponsors,
+		TotalCount: total,
+		PageInfo:   pagination.GetPageInfo(sponsors[0].ID, sponsors[len(sponsors)-1].ID),
+	}
+	return &connection, err
 }
 
-func (r *hackathonResolver) Events(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Event, error) {
-	return r.Repository.GetHackathonEvents(ctx, obj, first, after)
+func (r *hackathonResolver) Events(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.EventsConnection, error) {
+	a, err := pagination.DecodeCursor(after)
+	if err != nil {
+		return nil, err
+	}
+	events, total, err := r.Repository.GetHackathonEvents(ctx, obj, first, a)
+	if err != nil {
+		return nil, err
+	}
+	connection := model.EventsConnection{Events: events,
+		TotalCount: total,
+		PageInfo:   pagination.GetPageInfo(events[0].ID, events[len(events)-1].ID),
+	}
+	return &connection, err
 }
 
 func (r *hackathonResolver) Status(ctx context.Context, obj *model.Hackathon) (model.HackathonStatus, error) {

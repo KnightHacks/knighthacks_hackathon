@@ -67,6 +67,12 @@ type ComplexityRoot struct {
 		ID        func(childComplexity int) int
 	}
 
+	EventsConnection struct {
+		Events     func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
 	Hackathon struct {
 		Applicants func(childComplexity int, first int, after *string) int
 		Attendees  func(childComplexity int, first int, after *string) int
@@ -90,6 +96,11 @@ type ComplexityRoot struct {
 		UpdateHackathon  func(childComplexity int, id string, input model.HackathonUpdateInput) int
 	}
 
+	PageInfo struct {
+		EndCursor   func(childComplexity int) int
+		StartCursor func(childComplexity int) int
+	}
+
 	Query struct {
 		CurrentHackathon   func(childComplexity int) int
 		GetHackathon       func(childComplexity int, id string) int
@@ -103,6 +114,12 @@ type ComplexityRoot struct {
 		ID         func(childComplexity int) int
 	}
 
+	SponsorsConnection struct {
+		PageInfo   func(childComplexity int) int
+		Sponsors   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
 	Term struct {
 		Semester func(childComplexity int) int
 		Year     func(childComplexity int) int
@@ -112,6 +129,12 @@ type ComplexityRoot struct {
 		AppliedHackathons  func(childComplexity int) int
 		AttendedHackathons func(childComplexity int) int
 		ID                 func(childComplexity int) int
+	}
+
+	UsersConnection struct {
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+		Users      func(childComplexity int) int
 	}
 
 	_Service struct {
@@ -130,10 +153,10 @@ type EventResolver interface {
 	Hackathon(ctx context.Context, obj *model.Event) (*model.Hackathon, error)
 }
 type HackathonResolver interface {
-	Applicants(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error)
-	Attendees(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error)
-	Sponsors(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Sponsor, error)
-	Events(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Event, error)
+	Applicants(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.UsersConnection, error)
+	Attendees(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.UsersConnection, error)
+	Sponsors(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.SponsorsConnection, error)
+	Events(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.EventsConnection, error)
 	Status(ctx context.Context, obj *model.Hackathon) (model.HackathonStatus, error)
 	Pending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error)
 	Attending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error)
@@ -247,6 +270,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.ID(childComplexity), true
+
+	case "EventsConnection.events":
+		if e.complexity.EventsConnection.Events == nil {
+			break
+		}
+
+		return e.complexity.EventsConnection.Events(childComplexity), true
+
+	case "EventsConnection.pageInfo":
+		if e.complexity.EventsConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.EventsConnection.PageInfo(childComplexity), true
+
+	case "EventsConnection.totalCount":
+		if e.complexity.EventsConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.EventsConnection.TotalCount(childComplexity), true
 
 	case "Hackathon.applicants":
 		if e.complexity.Hackathon.Applicants == nil {
@@ -427,6 +471,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateHackathon(childComplexity, args["id"].(string), args["input"].(model.HackathonUpdateInput)), true
 
+	case "PageInfo.endCursor":
+		if e.complexity.PageInfo.EndCursor == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.EndCursor(childComplexity), true
+
+	case "PageInfo.startCursor":
+		if e.complexity.PageInfo.StartCursor == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.StartCursor(childComplexity), true
+
 	case "Query.currentHackathon":
 		if e.complexity.Query.CurrentHackathon == nil {
 			break
@@ -491,6 +549,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Sponsor.ID(childComplexity), true
 
+	case "SponsorsConnection.pageInfo":
+		if e.complexity.SponsorsConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.SponsorsConnection.PageInfo(childComplexity), true
+
+	case "SponsorsConnection.sponsors":
+		if e.complexity.SponsorsConnection.Sponsors == nil {
+			break
+		}
+
+		return e.complexity.SponsorsConnection.Sponsors(childComplexity), true
+
+	case "SponsorsConnection.totalCount":
+		if e.complexity.SponsorsConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.SponsorsConnection.TotalCount(childComplexity), true
+
 	case "Term.semester":
 		if e.complexity.Term.Semester == nil {
 			break
@@ -525,6 +604,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.ID(childComplexity), true
+
+	case "UsersConnection.pageInfo":
+		if e.complexity.UsersConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.UsersConnection.PageInfo(childComplexity), true
+
+	case "UsersConnection.totalCount":
+		if e.complexity.UsersConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.UsersConnection.TotalCount(childComplexity), true
+
+	case "UsersConnection.users":
+		if e.complexity.UsersConnection.Users == nil {
+			break
+		}
+
+		return e.complexity.UsersConnection.Users(childComplexity), true
 
 	case "_Service.sdl":
 		if e.complexity._Service.SDL == nil {
@@ -619,6 +719,44 @@ directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITI
 directive @hasRole(role: Role!) on FIELD_DEFINITION | OBJECT # set minimum layer of security
 directive @pagination(maxLength: Int!) on FIELD_DEFINITION
 
+interface Connection {
+    # The total number of entries
+    totalCount: Int
+    # Information for paginating this connection
+    pageInfo: PageInfo!
+}
+
+type PageInfo @goModel(model: "github.com/KnightHacks/knighthacks_shared/models.PageInfo") {
+    # the first entry
+    startCursor: String!
+    # the last entry
+    endCursor: String!
+}
+
+# A connection object for a list of users
+type UsersConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+
+    users: [User!]!
+}
+
+# A connection object for a list of sponsors
+type SponsorsConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+
+    sponsors: [Sponsor!]!
+}
+
+# A connection object for a list of events
+type EventsConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+
+    events: [Event!]!
+}
+
 enum Role @goModel(model: "github.com/KnightHacks/knighthacks_shared/models.Role") {
     ADMIN
     """
@@ -651,10 +789,10 @@ type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     startDate: Time!
     endDate: Time!
 
-    applicants(first: Int! = 25, after: ID): [User!]! @goField(forceResolver: true)
-    attendees(first: Int! = 25, after: ID): [User!]! @goField(forceResolver: true)
-    sponsors(first: Int! = 25, after: ID): [Sponsor!]! @goField(forceResolver: true)
-    events(first: Int! = 25, after: ID): [Event!]! @goField(forceResolver: true)
+    applicants(first: Int! = 25, after: ID): UsersConnection! @goField(forceResolver: true)
+    attendees(first: Int! = 25, after: ID): UsersConnection! @goField(forceResolver: true)
+    sponsors(first: Int! = 25, after: ID): SponsorsConnection! @goField(forceResolver: true)
+    events(first: Int! = 25, after: ID): EventsConnection! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
 
     pending(userId: ID!): Boolean! @goField(forceResolver: true)
@@ -1670,6 +1808,150 @@ func (ec *executionContext) fieldContext_Event_hackathon(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _EventsConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.EventsConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EventsConnection_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EventsConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EventsConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EventsConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.EventsConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EventsConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EventsConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EventsConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EventsConnection_events(ctx context.Context, field graphql.CollectedField, obj *model.EventsConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EventsConnection_events(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Events, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Event)
+	fc.Result = res
+	return ec.marshalNEvent2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐEventᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EventsConnection_events(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EventsConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Event_id(ctx, field)
+			case "hackathon":
+				return ec.fieldContext_Event_hackathon(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Hackathon_id(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Hackathon_id(ctx, field)
 	if err != nil {
@@ -1878,9 +2160,9 @@ func (ec *executionContext) _Hackathon_applicants(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.User)
+	res := resTmp.(*model.UsersConnection)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUsersConnection2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUsersConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Hackathon_applicants(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1891,14 +2173,14 @@ func (ec *executionContext) fieldContext_Hackathon_applicants(ctx context.Contex
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "attendedHackathons":
-				return ec.fieldContext_User_attendedHackathons(ctx, field)
-			case "appliedHackathons":
-				return ec.fieldContext_User_appliedHackathons(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_UsersConnection_totalCount(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_UsersConnection_pageInfo(ctx, field)
+			case "users":
+				return ec.fieldContext_UsersConnection_users(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type UsersConnection", field.Name)
 		},
 	}
 	defer func() {
@@ -1941,9 +2223,9 @@ func (ec *executionContext) _Hackathon_attendees(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.User)
+	res := resTmp.(*model.UsersConnection)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUsersConnection2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUsersConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Hackathon_attendees(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1954,14 +2236,14 @@ func (ec *executionContext) fieldContext_Hackathon_attendees(ctx context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "attendedHackathons":
-				return ec.fieldContext_User_attendedHackathons(ctx, field)
-			case "appliedHackathons":
-				return ec.fieldContext_User_appliedHackathons(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_UsersConnection_totalCount(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_UsersConnection_pageInfo(ctx, field)
+			case "users":
+				return ec.fieldContext_UsersConnection_users(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type UsersConnection", field.Name)
 		},
 	}
 	defer func() {
@@ -2004,9 +2286,9 @@ func (ec *executionContext) _Hackathon_sponsors(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Sponsor)
+	res := resTmp.(*model.SponsorsConnection)
 	fc.Result = res
-	return ec.marshalNSponsor2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsorᚄ(ctx, field.Selections, res)
+	return ec.marshalNSponsorsConnection2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsorsConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Hackathon_sponsors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2017,12 +2299,14 @@ func (ec *executionContext) fieldContext_Hackathon_sponsors(ctx context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Sponsor_id(ctx, field)
-			case "hackathons":
-				return ec.fieldContext_Sponsor_hackathons(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_SponsorsConnection_totalCount(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_SponsorsConnection_pageInfo(ctx, field)
+			case "sponsors":
+				return ec.fieldContext_SponsorsConnection_sponsors(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Sponsor", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type SponsorsConnection", field.Name)
 		},
 	}
 	defer func() {
@@ -2065,9 +2349,9 @@ func (ec *executionContext) _Hackathon_events(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Event)
+	res := resTmp.(*model.EventsConnection)
 	fc.Result = res
-	return ec.marshalNEvent2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐEventᚄ(ctx, field.Selections, res)
+	return ec.marshalNEventsConnection2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐEventsConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Hackathon_events(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2078,12 +2362,14 @@ func (ec *executionContext) fieldContext_Hackathon_events(ctx context.Context, f
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Event_id(ctx, field)
-			case "hackathon":
-				return ec.fieldContext_Event_hackathon(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_EventsConnection_totalCount(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_EventsConnection_pageInfo(ctx, field)
+			case "events":
+				return ec.fieldContext_EventsConnection_events(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type EventsConnection", field.Name)
 		},
 	}
 	defer func() {
@@ -2776,6 +3062,94 @@ func (ec *executionContext) fieldContext_Mutation_applyToHackathon(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field graphql.CollectedField, obj *models.PageInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PageInfo_startCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PageInfo_startCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *models.PageInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PageInfo_endCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PageInfo_endCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_currentHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_currentHackathon(ctx, field)
 	if err != nil {
@@ -3343,6 +3717,150 @@ func (ec *executionContext) fieldContext_Sponsor_hackathons(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _SponsorsConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.SponsorsConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SponsorsConnection_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SponsorsConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SponsorsConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SponsorsConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.SponsorsConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SponsorsConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SponsorsConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SponsorsConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SponsorsConnection_sponsors(ctx context.Context, field graphql.CollectedField, obj *model.SponsorsConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SponsorsConnection_sponsors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Sponsors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Sponsor)
+	fc.Result = res
+	return ec.marshalNSponsor2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsorᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SponsorsConnection_sponsors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SponsorsConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Sponsor_id(ctx, field)
+			case "hackathons":
+				return ec.fieldContext_Sponsor_hackathons(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Sponsor", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Term_year(ctx context.Context, field graphql.CollectedField, obj *model.Term) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Term_year(ctx, field)
 	if err != nil {
@@ -3606,6 +4124,152 @@ func (ec *executionContext) fieldContext_User_appliedHackathons(ctx context.Cont
 				return ec.fieldContext_Hackathon_attending(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UsersConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.UsersConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UsersConnection_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UsersConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UsersConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UsersConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.UsersConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UsersConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UsersConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UsersConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UsersConnection_users(ctx context.Context, field graphql.CollectedField, obj *model.UsersConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UsersConnection_users(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Users, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UsersConnection_users(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UsersConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "attendedHackathons":
+				return ec.fieldContext_User_attendedHackathons(ctx, field)
+			case "appliedHackathons":
+				return ec.fieldContext_User_appliedHackathons(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
@@ -5602,6 +6266,36 @@ func (ec *executionContext) unmarshalInputHackathonUpdateInput(ctx context.Conte
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _Connection(ctx context.Context, sel ast.SelectionSet, obj model.Connection) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case model.UsersConnection:
+		return ec._UsersConnection(ctx, sel, &obj)
+	case *model.UsersConnection:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._UsersConnection(ctx, sel, obj)
+	case model.SponsorsConnection:
+		return ec._SponsorsConnection(ctx, sel, &obj)
+	case *model.SponsorsConnection:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._SponsorsConnection(ctx, sel, obj)
+	case model.EventsConnection:
+		return ec._EventsConnection(ctx, sel, &obj)
+	case *model.EventsConnection:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._EventsConnection(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, obj fedruntime.Entity) graphql.Marshaler {
 	switch obj := (obj).(type) {
 	case nil:
@@ -5825,6 +6519,48 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 				return innerFunc(ctx)
 
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var eventsConnectionImplementors = []string{"EventsConnection", "Connection"}
+
+func (ec *executionContext) _EventsConnection(ctx context.Context, sel ast.SelectionSet, obj *model.EventsConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, eventsConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EventsConnection")
+		case "totalCount":
+
+			out.Values[i] = ec._EventsConnection_totalCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+
+			out.Values[i] = ec._EventsConnection_pageInfo(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "events":
+
+			out.Values[i] = ec._EventsConnection_events(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6109,6 +6845,41 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
+var pageInfoImplementors = []string{"PageInfo"}
+
+func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *models.PageInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pageInfoImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PageInfo")
+		case "startCursor":
+
+			out.Values[i] = ec._PageInfo_startCursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "endCursor":
+
+			out.Values[i] = ec._PageInfo_endCursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -6311,6 +7082,48 @@ func (ec *executionContext) _Sponsor(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var sponsorsConnectionImplementors = []string{"SponsorsConnection", "Connection"}
+
+func (ec *executionContext) _SponsorsConnection(ctx context.Context, sel ast.SelectionSet, obj *model.SponsorsConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sponsorsConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SponsorsConnection")
+		case "totalCount":
+
+			out.Values[i] = ec._SponsorsConnection_totalCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+
+			out.Values[i] = ec._SponsorsConnection_pageInfo(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sponsors":
+
+			out.Values[i] = ec._SponsorsConnection_sponsors(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var termImplementors = []string{"Term"}
 
 func (ec *executionContext) _Term(ctx context.Context, sel ast.SelectionSet, obj *model.Term) graphql.Marshaler {
@@ -6403,6 +7216,48 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var usersConnectionImplementors = []string{"UsersConnection", "Connection"}
+
+func (ec *executionContext) _UsersConnection(ctx context.Context, sel ast.SelectionSet, obj *model.UsersConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, usersConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UsersConnection")
+		case "totalCount":
+
+			out.Values[i] = ec._UsersConnection_totalCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+
+			out.Values[i] = ec._UsersConnection_pageInfo(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "users":
+
+			out.Values[i] = ec._UsersConnection_users(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6830,6 +7685,20 @@ func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋKnightHacksᚋknight
 	return ec._Event(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNEventsConnection2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐEventsConnection(ctx context.Context, sel ast.SelectionSet, v model.EventsConnection) graphql.Marshaler {
+	return ec._EventsConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEventsConnection2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐEventsConnection(ctx context.Context, sel ast.SelectionSet, v *model.EventsConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EventsConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNHackathon2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathon(ctx context.Context, sel ast.SelectionSet, v model.Hackathon) graphql.Marshaler {
 	return ec._Hackathon(ctx, sel, &v)
 }
@@ -6975,6 +7844,16 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *models.PageInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PageInfo(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNRole2githubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐRole(ctx context.Context, v interface{}) (models.Role, error) {
 	var res models.Role
 	err := res.UnmarshalGQL(v)
@@ -7051,6 +7930,20 @@ func (ec *executionContext) marshalNSponsor2ᚖgithubᚗcomᚋKnightHacksᚋknig
 		return graphql.Null
 	}
 	return ec._Sponsor(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSponsorsConnection2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsorsConnection(ctx context.Context, sel ast.SelectionSet, v model.SponsorsConnection) graphql.Marshaler {
+	return ec._SponsorsConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSponsorsConnection2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐSponsorsConnection(ctx context.Context, sel ast.SelectionSet, v *model.SponsorsConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SponsorsConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -7149,6 +8042,20 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋKnightHacksᚋknighth
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUsersConnection2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUsersConnection(ctx context.Context, sel ast.SelectionSet, v model.UsersConnection) graphql.Marshaler {
+	return ec._UsersConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUsersConnection2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐUsersConnection(ctx context.Context, sel ast.SelectionSet, v *model.UsersConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UsersConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalN_Any2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {

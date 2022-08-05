@@ -672,22 +672,131 @@ WHERE user_id = $1
 	return exists == 1, nil
 }
 
-func (r *DatabaseRepository) GetHackathonApplicants(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error) {
-	//TODO implement me
-	panic("implement me")
+func (r *DatabaseRepository) GetHackathonApplicants(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.User, int, error) {
+	return r.getHackathonUsers(ctx, hackathon, first, after, false)
 }
 
-func (r *DatabaseRepository) GetHackathonAttendees(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.User, error) {
-	//TODO implement me
-	panic("implement me")
+func (r *DatabaseRepository) GetHackathonAttendees(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.User, int, error) {
+	return r.getHackathonUsers(ctx, hackathon, first, after, true)
 }
 
-func (r *DatabaseRepository) GetHackathonSponsors(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Sponsor, error) {
-	//TODO implement me
-	panic("implement me")
+func (r *DatabaseRepository) getHackathonUsers(ctx context.Context, hackathon *model.Hackathon, first int, after string, attending bool) ([]*model.User, int, error) {
+	var countQuery string
+	var userQuery string
+	if attending {
+		countQuery = `SELECT COUNT(*) FROM hackathon_participants WHERE hackathon_id = $1 AND accepted_date IS NOT NULL`
+		userQuery = `SELECT user_id FROM hackathon_participants WHERE hackathon_id = $1 AND accepted_date IS NOT NULL AND user_id > $2 ORDER BY user_id DESC LIMIT $3`
+	} else {
+		countQuery = `SELECT COUNT(*) FROM hackathon_participants WHERE hackathon_id = $1 AND accepted_date IS NULL`
+		userQuery = `SELECT user_id FROM hackathon_participants WHERE hackathon_id = $1 AND accepted_date IS NULL AND user_id > $2 ORDER BY user_id DESC LIMIT $3`
+	}
+
+	users := make([]*model.User, 0, first)
+	var total int
+	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		rows, err := tx.Query(
+			ctx,
+			userQuery,
+			hackathon.ID,
+			after,
+			first,
+		)
+		if err != nil {
+			return err
+		}
+		for rows.Next() {
+			var user model.User
+			err = rows.Scan(&user.ID)
+			if err != nil {
+				return err
+			}
+			users = append(users, &user)
+		}
+		if err = rows.Err(); err != nil {
+			return err
+		}
+		err = tx.QueryRow(ctx, countQuery, hackathon.ID).Scan(&total)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+	return users, total, err
 }
 
-func (r *DatabaseRepository) GetHackathonEvents(ctx context.Context, obj *model.Hackathon, first int, after *string) ([]*model.Event, error) {
-	//TODO implement me
-	panic("implement me")
+func (r *DatabaseRepository) GetHackathonSponsors(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.Sponsor, int, error) {
+	sponsors := make([]*model.Sponsor, 0, first)
+	var total int
+	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		rows, err := tx.Query(
+			ctx,
+			`SELECT sponsor_id FROM hackathon_sponsors WHERE hackathon_id = $1 AND sponsor_id > $2 ORDER BY sponsor_id DESC LIMIT $3`,
+			hackathon.ID,
+			after,
+			first,
+		)
+		if err != nil {
+			return err
+		}
+		for rows.Next() {
+			var sponsor model.Sponsor
+			err = rows.Scan(&sponsor.ID)
+			if err != nil {
+				return err
+			}
+			sponsors = append(sponsors, &sponsor)
+		}
+		if err = rows.Err(); err != nil {
+			return err
+		}
+		err = tx.QueryRow(ctx, `SELECT COUNT(*) FROM hackathon_sponsors WHERE hackathon_id = $1`, hackathon.ID).Scan(&total)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+	return sponsors, total, err
+}
+
+func (r *DatabaseRepository) GetHackathonEvents(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.Event, int, error) {
+	events := make([]*model.Event, 0, first)
+	var total int
+	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		rows, err := tx.Query(
+			ctx,
+			`SELECT id FROM events WHERE hackathon_id = $1 AND id > $2 ORDER BY id DESC LIMIT $3`,
+			hackathon.ID,
+			after,
+			first,
+		)
+		if err != nil {
+			return err
+		}
+		for rows.Next() {
+			var event model.Event
+			err = rows.Scan(&event.ID)
+			if err != nil {
+				return err
+			}
+			events = append(events, &event)
+		}
+		if err = rows.Err(); err != nil {
+			return err
+		}
+		err = tx.QueryRow(ctx, `SELECT COUNT(*) FROM events WHERE hackathon_id = $1`, hackathon.ID).Scan(&total)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+	return events, total, err
 }

@@ -7,7 +7,13 @@ import (
 	"io"
 	"strconv"
 	"time"
+
+	"github.com/KnightHacks/knighthacks_shared/models"
 )
+
+type Connection interface {
+	IsConnection()
+}
 
 type Event struct {
 	ID        string     `json:"id"`
@@ -16,18 +22,26 @@ type Event struct {
 
 func (Event) IsEntity() {}
 
+type EventsConnection struct {
+	TotalCount int              `json:"totalCount"`
+	PageInfo   *models.PageInfo `json:"pageInfo"`
+	Events     []*Event         `json:"events"`
+}
+
+func (EventsConnection) IsConnection() {}
+
 type Hackathon struct {
-	ID         string          `json:"id"`
-	Term       *Term           `json:"term"`
-	StartDate  time.Time       `json:"startDate"`
-	EndDate    time.Time       `json:"endDate"`
-	Applicants []*User         `json:"applicants"`
-	Attendees  []*User         `json:"attendees"`
-	Sponsors   []*Sponsor      `json:"sponsors"`
-	Events     []*Event        `json:"events"`
-	Status     HackathonStatus `json:"status"`
-	Pending    bool            `json:"pending"`
-	Attending  bool            `json:"attending"`
+	ID         string              `json:"id"`
+	Term       *Term               `json:"term"`
+	StartDate  time.Time           `json:"startDate"`
+	EndDate    time.Time           `json:"endDate"`
+	Applicants *UsersConnection    `json:"applicants"`
+	Attendees  *UsersConnection    `json:"attendees"`
+	Sponsors   *SponsorsConnection `json:"sponsors"`
+	Events     *EventsConnection   `json:"events"`
+	Status     HackathonStatus     `json:"status"`
+	Pending    bool                `json:"pending"`
+	Attending  bool                `json:"attending"`
 }
 
 func (Hackathon) IsEntity() {}
@@ -64,6 +78,14 @@ type Sponsor struct {
 
 func (Sponsor) IsEntity() {}
 
+type SponsorsConnection struct {
+	TotalCount int              `json:"totalCount"`
+	PageInfo   *models.PageInfo `json:"pageInfo"`
+	Sponsors   []*Sponsor       `json:"sponsors"`
+}
+
+func (SponsorsConnection) IsConnection() {}
+
 type Term struct {
 	Year     int      `json:"year"`
 	Semester Semester `json:"semester"`
@@ -76,6 +98,14 @@ type User struct {
 }
 
 func (User) IsEntity() {}
+
+type UsersConnection struct {
+	TotalCount int              `json:"totalCount"`
+	PageInfo   *models.PageInfo `json:"pageInfo"`
+	Users      []*User          `json:"users"`
+}
+
+func (UsersConnection) IsConnection() {}
 
 type HackathonStatus string
 

@@ -13,6 +13,44 @@ directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITI
 directive @hasRole(role: Role!) on FIELD_DEFINITION | OBJECT # set minimum layer of security
 directive @pagination(maxLength: Int!) on FIELD_DEFINITION
 
+interface Connection {
+    # The total number of entries
+    totalCount: Int
+    # Information for paginating this connection
+    pageInfo: PageInfo!
+}
+
+type PageInfo @goModel(model: "github.com/KnightHacks/knighthacks_shared/models.PageInfo") {
+    # the first entry
+    startCursor: String!
+    # the last entry
+    endCursor: String!
+}
+
+# A connection object for a list of users
+type UsersConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+
+    users: [User!]!
+}
+
+# A connection object for a list of sponsors
+type SponsorsConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+
+    sponsors: [Sponsor!]!
+}
+
+# A connection object for a list of events
+type EventsConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+
+    events: [Event!]!
+}
+
 enum Role @goModel(model: "github.com/KnightHacks/knighthacks_shared/models.Role") {
     ADMIN
     """
@@ -45,10 +83,10 @@ type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     startDate: Time!
     endDate: Time!
 
-    applicants(first: Int! = 25, after: ID): [User!]! @goField(forceResolver: true)
-    attendees(first: Int! = 25, after: ID): [User!]! @goField(forceResolver: true)
-    sponsors(first: Int! = 25, after: ID): [Sponsor!]! @goField(forceResolver: true)
-    events(first: Int! = 25, after: ID): [Event!]! @goField(forceResolver: true)
+    applicants(first: Int! = 25, after: ID): UsersConnection! @goField(forceResolver: true)
+    attendees(first: Int! = 25, after: ID): UsersConnection! @goField(forceResolver: true)
+    sponsors(first: Int! = 25, after: ID): SponsorsConnection! @goField(forceResolver: true)
+    events(first: Int! = 25, after: ID): EventsConnection! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
 
     pending(userId: ID!): Boolean! @goField(forceResolver: true)
