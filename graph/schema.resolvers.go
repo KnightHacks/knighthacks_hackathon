@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
@@ -81,7 +82,16 @@ func (r *hackathonResolver) Events(ctx context.Context, obj *model.Hackathon, fi
 }
 
 func (r *hackathonResolver) Status(ctx context.Context, obj *model.Hackathon) (model.HackathonStatus, error) {
-	panic(fmt.Errorf("not implemented"))
+	now := time.Now().UTC()
+
+	if obj.StartDate.After(now) {
+		return model.HackathonStatusFuture, nil
+	}
+	if obj.EndDate.Before(now) {
+		return model.HackathonStatusPast, nil
+	}
+
+	return model.HackathonStatusPresent, nil
 }
 
 func (r *hackathonResolver) Pending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error) {
