@@ -67,9 +67,6 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 			return nil, err
 		}
 		r.TermBiMap.Put(termId, term)
-		defer func(tx pgx.Tx, ctx context.Context) {
-			err = tx.Commit(ctx)
-		}(tx, ctx)
 	}
 
 	var hackathonIdInt int
@@ -81,6 +78,12 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 		input.EndDate,
 	).Scan(&hackathonIdInt); err != nil {
 		return nil, err
+	}
+
+	if tx, ok := queryable.(pgx.Tx); ok {
+		if err = tx.Commit(ctx); err != nil {
+			return nil, err
+		}
 	}
 
 	if err != nil {
