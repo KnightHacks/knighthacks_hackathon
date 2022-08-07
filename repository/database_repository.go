@@ -108,7 +108,8 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, inp
 		len(input.RemovedParticipants) == 0 {
 		return nil, errors.New("empty input field")
 	}
-	var hackathon model.Hackathon
+	var hackathon *model.Hackathon
+	var err error
 
 	tx, err := r.DatabasePool.Begin(ctx)
 	runTx := func(tx pgx.Tx, hackathonIdString string, input *model.HackathonUpdateInput) (err error) {
@@ -159,6 +160,11 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, inp
 				return err
 			}
 		}
+		hackathon, err = r.getHackathon(ctx, r.DatabasePool, "SELECT id, term_id, start_date, end_date FROM hackathons WHERE id = $1", id)
+
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -170,7 +176,7 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, inp
 		}
 	}
 
-	return &hackathon, nil
+	return hackathon, nil
 }
 
 func (r *DatabaseRepository) updateHackathonYear(ctx context.Context, tx pgx.Tx, hackathonId int, year int) error {
