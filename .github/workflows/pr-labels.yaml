@@ -12,8 +12,10 @@ jobs:
   contains-labels:
     if: ${{!startsWith(github.head_ref, 'release/')}}
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: jesusvasquez333/verify-pr-label-action@v1.4.0
         with:
-          github-token: '${{ secrets.TOKEN }}'
+          github-token: '${{ secrets.GITHUB_TOKEN }}'
           valid-labels: 'patch, minor, major'
