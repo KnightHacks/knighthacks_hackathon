@@ -6,20 +6,30 @@ import (
 )
 
 type Repository interface {
-	CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error)
-	UpdateHackathon(ctx context.Context, id string, input model.HackathonUpdateInput) (*model.Hackathon, error)
+	CreateHackathon(ctx context.Context, input *model.HackathonCreateInput) (*model.Hackathon, error)
+	UpdateHackathon(ctx context.Context, id string, input *model.HackathonUpdateInput) (*model.Hackathon, error)
 	GetHackathon(ctx context.Context, id string) (*model.Hackathon, error)
 	GetHackathonByTermYearAndTermSemester(ctx context.Context, termYear int, termSemester model.Semester) (*model.Hackathon, error)
+	GetHackathonByEvent(ctx context.Context, obj *model.Event) (*model.Hackathon, error)
 
-	DeleteHackathon(ctx context.Context, id string) (*model.Hackathon, error)
+	DeleteHackathon(ctx context.Context, id string) (bool, error)
 
 	GetCurrentHackathon(ctx context.Context) (*model.Hackathon, error)
+
+	AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
+	DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
+
+	IsUserAttending(ctx context.Context, hackathon *model.Hackathon, userID string) (bool, error)
+	IsUserPending(ctx context.Context, hackathon *model.Hackathon, userID string) (bool, error)
 
 	// Array returns
 
 	GetHackathons(ctx context.Context, filter *model.HackathonFilter) ([]*model.Hackathon, error)
+	GetHackathonsByUser(ctx context.Context, obj *model.User, attended bool) ([]*model.Hackathon, error)
+	GetHackathonsBySponsor(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error)
 
-	// Shared References
-
-	GetEventById()
+	GetHackathonApplicants(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.User, int, error)
+	GetHackathonAttendees(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.User, int, error)
+	GetHackathonSponsors(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.Sponsor, int, error)
+	GetHackathonEvents(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.Event, int, error)
 }

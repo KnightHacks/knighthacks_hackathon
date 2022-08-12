@@ -10,6 +10,57 @@ directive @goModel(model: String, models: [String!]) on OBJECT
 directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION
     | FIELD_DEFINITION
 
+directive @hasRole(role: Role!) on FIELD_DEFINITION | OBJECT # set minimum layer of security
+directive @pagination(maxLength: Int!) on FIELD_DEFINITION
+
+interface Connection {
+    # The total number of entries
+    totalCount: Int
+    # Information for paginating this connection
+    pageInfo: PageInfo!
+}
+
+type PageInfo @goModel(model: "github.com/KnightHacks/knighthacks_shared/models.PageInfo") {
+    # the first entry
+    startCursor: String!
+    # the last entry
+    endCursor: String!
+}
+
+# A connection object for a list of users
+type UsersConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+
+    users: [User!]!
+}
+
+# A connection object for a list of sponsors
+type SponsorsConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+
+    sponsors: [Sponsor!]!
+}
+
+# A connection object for a list of events
+type EventsConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+
+    events: [Event!]!
+}
+
+enum Role @goModel(model: "github.com/KnightHacks/knighthacks_shared/models.Role") {
+    ADMIN
+    """
+    for now keep this the same
+    """
+    SPONSOR
+    NORMAL
+    OWNS
+}
+
 extend type Event @key(fields: "id") {
     id: ID! @external
     hackathon: Hackathon! @goField(forceResolver: true)
@@ -17,7 +68,8 @@ extend type Event @key(fields: "id") {
 
 extend type User @key(fields: "id") {
     id: ID! @external
-    hackathons: [Hackathon!]! @goField(forceResolver: true)
+    attendedHackathons: [Hackathon!]! @goField(forceResolver: true)
+    appliedHackathons: [Hackathon!]! @goField(forceResolver: true)
 }
 
 extend type Sponsor @key(fields: "id") {
@@ -31,10 +83,14 @@ type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     startDate: Time!
     endDate: Time!
 
-    attendees: [User!]! @goField(forceResolver: true)
-    sponsors: [Sponsor!]! @goField(forceResolver: true)
-    events: [Event!]! @goField(forceResolver: true)
+    applicants(first: Int! = 25, after: ID): UsersConnection! @goField(forceResolver: true)
+    attendees(first: Int! = 25, after: ID): UsersConnection! @goField(forceResolver: true)
+    sponsors(first: Int! = 25, after: ID): SponsorsConnection! @goField(forceResolver: true)
+    events(first: Int! = 25, after: ID): EventsConnection! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
+
+    pending(userId: ID!): Boolean! @goField(forceResolver: true)
+    attending(userId: ID!): Boolean! @goField(forceResolver: true)
 }
 
 enum HackathonStatus {
@@ -62,17 +118,21 @@ input HackathonFilter {
 input HackathonCreateInput {
     year: Int!
     semester: Semester!
-    sponsors: [ID!]
-    events: [ID!]
+    sponsors: [ID!]!
+    events: [ID!]!
+    startDate: Time!
+    endDate: Time!
 }
 
 input HackathonUpdateInput {
     year: Int
     semester: Semester
-    deletedSponsors: [ID!]
     addedSponsors: [ID!]
+    removedSponsors: [ID!]
     addedEvents: [ID!]
-    deletedEvents: [ID!]
+    removedEvents: [ID!]
+    addedParticipants: [ID!]
+    removedParticipants: [ID!]
 }
 
 type Query {
@@ -82,6 +142,11 @@ type Query {
 }
 
 type Mutation {
-    createHackathon(input: HackathonCreateInput!): Hackathon!
-    updateHackathon(id: ID!, input: HackathonUpdateInput!): Hackathon!
+    createHackathon(input: HackathonCreateInput!): Hackathon! @hasRole(role: ADMIN)
+    updateHackathon(id: ID!, input: HackathonUpdateInput!): Hackathon! @hasRole(role: ADMIN)
+    deleteHackathon(id: ID!): Boolean! @hasRole(role: ADMIN)
+
+    acceptApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
+    denyApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
+    applyToHackathon(hackathonId: ID!): Boolean! @hasRole(role: NORMAL)
 }
