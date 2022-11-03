@@ -18,40 +18,6 @@ func (r *eventResolver) Hackathon(ctx context.Context, obj *model.Event) (*model
 	return r.Repository.GetHackathonByEvent(ctx, obj)
 }
 
-// Applicants is the resolver for the applicants field.
-func (r *hackathonResolver) Applicants(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.UsersConnection, error) {
-	a, err := pagination.DecodeCursor(after)
-	if err != nil {
-		return nil, err
-	}
-	applicants, total, err := r.Repository.GetHackathonApplicants(ctx, obj, first, a)
-	if err != nil {
-		return nil, err
-	}
-	connection := model.UsersConnection{Users: applicants,
-		TotalCount: total,
-		PageInfo:   pagination.GetPageInfo(applicants[0].ID, applicants[len(applicants)-1].ID),
-	}
-	return &connection, nil
-}
-
-// Attendees is the resolver for the attendees field.
-func (r *hackathonResolver) Attendees(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.UsersConnection, error) {
-	a, err := pagination.DecodeCursor(after)
-	if err != nil {
-		return nil, err
-	}
-	attendees, total, err := r.Repository.GetHackathonAttendees(ctx, obj, first, a)
-	if err != nil {
-		return nil, err
-	}
-	connection := model.UsersConnection{Users: attendees,
-		TotalCount: total,
-		PageInfo:   pagination.GetPageInfo(attendees[0].ID, attendees[len(attendees)-1].ID),
-	}
-	return &connection, err
-}
-
 // Sponsors is the resolver for the sponsors field.
 func (r *hackathonResolver) Sponsors(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.SponsorsConnection, error) {
 	a, err := pagination.DecodeCursor(after)
@@ -165,14 +131,9 @@ func (r *sponsorResolver) Hackathons(ctx context.Context, obj *model.Sponsor) ([
 	return r.Repository.GetHackathonsBySponsor(ctx, obj)
 }
 
-// AttendedHackathons is the resolver for the attendedHackathons field.
-func (r *userResolver) AttendedHackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {
-	return r.Repository.GetHackathonsByUser(ctx, obj, true)
-}
-
-// AppliedHackathons is the resolver for the appliedHackathons field.
-func (r *userResolver) AppliedHackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {
-	return r.Repository.GetHackathonsByUser(ctx, obj, false)
+// Applications is the resolver for the applications field.
+func (r *userResolver) Applications(ctx context.Context, obj *model.User) ([]*model.HackathonApplication, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Event returns generated.EventResolver implementation.
@@ -206,6 +167,42 @@ type userResolver struct{ *Resolver }
 //   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //     it when you're done.
 //   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *hackathonResolver) Applicants(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.UsersConnection, error) {
+	a, err := pagination.DecodeCursor(after)
+	if err != nil {
+		return nil, err
+	}
+	applicants, total, err := r.Repository.GetHackathonApplicants(ctx, obj, first, a)
+	if err != nil {
+		return nil, err
+	}
+	connection := model.UsersConnection{Users: applicants,
+		TotalCount: total,
+		PageInfo:   pagination.GetPageInfo(applicants[0].ID, applicants[len(applicants)-1].ID),
+	}
+	return &connection, nil
+}
+func (r *hackathonResolver) Attendees(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.UsersConnection, error) {
+	a, err := pagination.DecodeCursor(after)
+	if err != nil {
+		return nil, err
+	}
+	attendees, total, err := r.Repository.GetHackathonAttendees(ctx, obj, first, a)
+	if err != nil {
+		return nil, err
+	}
+	connection := model.UsersConnection{Users: attendees,
+		TotalCount: total,
+		PageInfo:   pagination.GetPageInfo(attendees[0].ID, attendees[len(attendees)-1].ID),
+	}
+	return &connection, err
+}
+func (r *userResolver) AttendedHackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {
+	return r.Repository.GetHackathonsByUser(ctx, obj, true)
+}
+func (r *userResolver) AppliedHackathons(ctx context.Context, obj *model.User) ([]*model.Hackathon, error) {
+	return r.Repository.GetHackathonsByUser(ctx, obj, false)
+}
 func (r *hackathonResolver) Pending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error) {
 	return r.Repository.IsUserPending(ctx, obj, userID)
 }

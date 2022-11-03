@@ -36,8 +36,6 @@ type Hackathon struct {
 	Term         *Term                   `json:"term"`
 	StartDate    time.Time               `json:"startDate"`
 	EndDate      time.Time               `json:"endDate"`
-	Applicants   *UsersConnection        `json:"applicants"`
-	Attendees    *UsersConnection        `json:"attendees"`
 	Sponsors     *SponsorsConnection     `json:"sponsors"`
 	Events       *EventsConnection       `json:"events"`
 	Status       HackathonStatus         `json:"status"`
@@ -110,9 +108,8 @@ type Term struct {
 }
 
 type User struct {
-	ID                 string       `json:"id"`
-	AttendedHackathons []*Hackathon `json:"attendedHackathons"`
-	AppliedHackathons  []*Hackathon `json:"appliedHackathons"`
+	ID           string                  `json:"id"`
+	Applications []*HackathonApplication `json:"applications"`
 }
 
 func (User) IsEntity() {}
