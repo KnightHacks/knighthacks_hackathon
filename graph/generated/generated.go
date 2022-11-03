@@ -89,7 +89,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AcceptApplicant  func(childComplexity int, hackathonID string, userID string) int
-		ApplyToHackathon func(childComplexity int, hackathonID string) int
+		ApplyToHackathon func(childComplexity int, hackathonID string, input model.HackathonApplicationInput) int
 		CreateHackathon  func(childComplexity int, input model.HackathonCreateInput) int
 		DeleteHackathon  func(childComplexity int, id string) int
 		DenyApplicant    func(childComplexity int, hackathonID string, userID string) int
@@ -167,7 +167,7 @@ type MutationResolver interface {
 	DeleteHackathon(ctx context.Context, id string) (bool, error)
 	AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
 	DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
-	ApplyToHackathon(ctx context.Context, hackathonID string) (bool, error)
+	ApplyToHackathon(ctx context.Context, hackathonID string, input model.HackathonApplicationInput) (bool, error)
 }
 type QueryResolver interface {
 	CurrentHackathon(ctx context.Context) (*model.Hackathon, error)
@@ -421,7 +421,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ApplyToHackathon(childComplexity, args["hackathonId"].(string)), true
+		return e.complexity.Mutation.ApplyToHackathon(childComplexity, args["hackathonId"].(string), args["input"].(model.HackathonApplicationInput)), true
 
 	case "Mutation.createHackathon":
 		if e.complexity.Mutation.CreateHackathon == nil {
@@ -641,6 +641,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputHackathonApplicationInput,
 		ec.unmarshalInputHackathonCreateInput,
 		ec.unmarshalInputHackathonFilter,
 		ec.unmarshalInputHackathonUpdateInput,
@@ -705,6 +706,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "../schema.graphqls", Input: `scalar Time
+scalar Upload
 
 directive @goModel(model: String, models: [String!]) on OBJECT
     | INPUT_OBJECT
@@ -841,6 +843,13 @@ input HackathonUpdateInput {
     removedParticipants: [ID!]
 }
 
+input HackathonApplicationInput {
+    whyAttend: [String!]!
+    whatDoYouWantToLearn: [String!]!
+    shareInfoWithSponsors: Boolean!
+    resume: Upload
+}
+
 type Query {
     currentHackathon: Hackathon
     hackathons(filter: HackathonFilter!): [Hackathon!]!
@@ -854,13 +863,13 @@ type Mutation {
 
     acceptApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
     denyApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
-    applyToHackathon(hackathonId: ID!): Boolean! @hasRole(role: NORMAL)
+    applyToHackathon(hackathonId: ID!, input: HackathonApplicationInput!): Boolean! @hasRole(role: NORMAL)
 }
 `, BuiltIn: false},
 	{Name: "../../federation/directives.graphql", Input: `
 	scalar _Any
 	scalar _FieldSet
-	
+
 	directive @external on FIELD_DEFINITION
 	directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
 	directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
@@ -1174,6 +1183,15 @@ func (ec *executionContext) field_Mutation_applyToHackathon_args(ctx context.Con
 		}
 	}
 	args["hackathonId"] = arg0
+	var arg1 model.HackathonApplicationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNHackathonApplicationInput2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonApplicationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -2998,7 +3016,7 @@ func (ec *executionContext) _Mutation_applyToHackathon(ctx context.Context, fiel
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().ApplyToHackathon(rctx, fc.Args["hackathonId"].(string))
+			return ec.resolvers.Mutation().ApplyToHackathon(rctx, fc.Args["hackathonId"].(string), fc.Args["input"].(model.HackathonApplicationInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNRole2githubᚗcomᚋKnightHacksᚋknighthacks_sharedᚋmodelsᚐRole(ctx, "NORMAL")
@@ -6089,6 +6107,58 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputHackathonApplicationInput(ctx context.Context, obj interface{}) (model.HackathonApplicationInput, error) {
+	var it model.HackathonApplicationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"whyAttend", "whatDoYouWantToLearn", "shareInfoWithSponsors", "resume"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "whyAttend":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("whyAttend"))
+			it.WhyAttend, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "whatDoYouWantToLearn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("whatDoYouWantToLearn"))
+			it.WhatDoYouWantToLearn, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "shareInfoWithSponsors":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shareInfoWithSponsors"))
+			it.ShareInfoWithSponsors, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "resume":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resume"))
+			it.Resume, err = ec.unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputHackathonCreateInput(ctx context.Context, obj interface{}) (model.HackathonCreateInput, error) {
 	var it model.HackathonCreateInput
 	asMap := map[string]interface{}{}
@@ -6096,7 +6166,12 @@ func (ec *executionContext) unmarshalInputHackathonCreateInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"year", "semester", "sponsors", "events", "startDate", "endDate"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "year":
 			var err error
@@ -6159,7 +6234,12 @@ func (ec *executionContext) unmarshalInputHackathonFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"year", "semester"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "year":
 			var err error
@@ -6190,7 +6270,12 @@ func (ec *executionContext) unmarshalInputHackathonUpdateInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"year", "semester", "addedSponsors", "removedSponsors", "addedEvents", "removedEvents", "addedParticipants", "removedParticipants"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "year":
 			var err error
@@ -7757,6 +7842,11 @@ func (ec *executionContext) marshalNHackathon2ᚖgithubᚗcomᚋKnightHacksᚋkn
 	return ec._Hackathon(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNHackathonApplicationInput2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonApplicationInput(ctx context.Context, v interface{}) (model.HackathonApplicationInput, error) {
+	res, err := ec.unmarshalInputHackathonApplicationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNHackathonCreateInput2githubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐHackathonCreateInput(ctx context.Context, v interface{}) (model.HackathonCreateInput, error) {
 	res, err := ec.unmarshalInputHackathonCreateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -7959,6 +8049,38 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNTerm2ᚖgithubᚗcomᚋKnightHacksᚋknighthacks_hackathonᚋgraphᚋmodelᚐTerm(ctx context.Context, sel ast.SelectionSet, v *model.Term) graphql.Marshaler {
@@ -8601,6 +8723,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (*graphql.Upload, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalUpload(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v *graphql.Upload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalUpload(*v)
 	return res
 }
 

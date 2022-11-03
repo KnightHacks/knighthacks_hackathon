@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/KnightHacks/knighthacks_shared/models"
 )
 
@@ -45,6 +46,13 @@ type Hackathon struct {
 }
 
 func (Hackathon) IsEntity() {}
+
+type HackathonApplicationInput struct {
+	WhyAttend             []string        `json:"whyAttend"`
+	WhatDoYouWantToLearn  []string        `json:"whatDoYouWantToLearn"`
+	ShareInfoWithSponsors bool            `json:"shareInfoWithSponsors"`
+	Resume                *graphql.Upload `json:"resume"`
+}
 
 type HackathonCreateInput struct {
 	Year      int       `json:"year"`

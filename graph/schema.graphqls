@@ -1,4 +1,5 @@
 scalar Time
+scalar Upload
 
 directive @goModel(model: String, models: [String!]) on OBJECT
     | INPUT_OBJECT
@@ -135,6 +136,13 @@ input HackathonUpdateInput {
     removedParticipants: [ID!]
 }
 
+input HackathonApplicationInput {
+    whyAttend: [String!]!
+    whatDoYouWantToLearn: [String!]!
+    shareInfoWithSponsors: Boolean!
+    resume: Upload
+}
+
 type Query {
     currentHackathon: Hackathon
     hackathons(filter: HackathonFilter!): [Hackathon!]!
@@ -148,5 +156,5 @@ type Mutation {
 
     acceptApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
     denyApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
-    applyToHackathon(hackathonId: ID!): Boolean! @hasRole(role: NORMAL)
+    applyToHackathon(hackathonId: ID!, input: HackathonApplicationInput!): Boolean! @hasRole(role: NORMAL)
 }
