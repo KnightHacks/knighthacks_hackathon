@@ -100,14 +100,9 @@ func (r *hackathonResolver) Status(ctx context.Context, obj *model.Hackathon) (m
 	return model.HackathonStatusPresent, nil
 }
 
-// Pending is the resolver for the pending field.
-func (r *hackathonResolver) Pending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error) {
-	return r.Repository.IsUserPending(ctx, obj, userID)
-}
-
-// Attending is the resolver for the attending field.
-func (r *hackathonResolver) Attending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error) {
-	return r.Repository.IsUserAttending(ctx, obj, userID)
+// Applications is the resolver for the applications field.
+func (r *hackathonResolver) Applications(ctx context.Context, obj *model.Hackathon, first int, after *string, status model.ApplicationStatus) ([]*model.HackathonApplication, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 // CreateHackathon is the resolver for the createHackathon field.
@@ -135,6 +130,11 @@ func (r *mutationResolver) DenyApplicant(ctx context.Context, hackathonID string
 	return r.Repository.DenyApplicant(ctx, hackathonID, userID)
 }
 
+// UpdateApplication is the resolver for the updateApplication field.
+func (r *mutationResolver) UpdateApplication(ctx context.Context, hackathonID string, userID string, input model.HackathonApplicationInput) (*model.HackathonApplication, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 // ApplyToHackathon is the resolver for the applyToHackathon field.
 func (r *mutationResolver) ApplyToHackathon(ctx context.Context, hackathonID string, input model.HackathonApplicationInput) (bool, error) {
 	panic(fmt.Errorf("not implemented"))
@@ -153,6 +153,11 @@ func (r *queryResolver) Hackathons(ctx context.Context, filter model.HackathonFi
 // GetHackathon is the resolver for the getHackathon field.
 func (r *queryResolver) GetHackathon(ctx context.Context, id string) (*model.Hackathon, error) {
 	return r.Repository.GetHackathon(ctx, id)
+}
+
+// GetApplication is the resolver for the getApplication field.
+func (r *queryResolver) GetApplication(ctx context.Context, hackathonID string, userID string) (*model.HackathonApplication, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Hackathons is the resolver for the hackathons field.
@@ -194,3 +199,16 @@ type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type sponsorResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *hackathonResolver) Pending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error) {
+	return r.Repository.IsUserPending(ctx, obj, userID)
+}
+func (r *hackathonResolver) Attending(ctx context.Context, obj *model.Hackathon, userID string) (bool, error) {
+	return r.Repository.IsUserAttending(ctx, obj, userID)
+}

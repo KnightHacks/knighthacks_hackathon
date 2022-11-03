@@ -32,20 +32,30 @@ type EventsConnection struct {
 func (EventsConnection) IsConnection() {}
 
 type Hackathon struct {
-	ID         string              `json:"id"`
-	Term       *Term               `json:"term"`
-	StartDate  time.Time           `json:"startDate"`
-	EndDate    time.Time           `json:"endDate"`
-	Applicants *UsersConnection    `json:"applicants"`
-	Attendees  *UsersConnection    `json:"attendees"`
-	Sponsors   *SponsorsConnection `json:"sponsors"`
-	Events     *EventsConnection   `json:"events"`
-	Status     HackathonStatus     `json:"status"`
-	Pending    bool                `json:"pending"`
-	Attending  bool                `json:"attending"`
+	ID           string                  `json:"id"`
+	Term         *Term                   `json:"term"`
+	StartDate    time.Time               `json:"startDate"`
+	EndDate      time.Time               `json:"endDate"`
+	Applicants   *UsersConnection        `json:"applicants"`
+	Attendees    *UsersConnection        `json:"attendees"`
+	Sponsors     *SponsorsConnection     `json:"sponsors"`
+	Events       *EventsConnection       `json:"events"`
+	Status       HackathonStatus         `json:"status"`
+	Applications []*HackathonApplication `json:"applications"`
 }
 
 func (Hackathon) IsEntity() {}
+
+type HackathonApplication struct {
+	ID                    string            `json:"id"`
+	Status                ApplicationStatus `json:"status"`
+	User                  *User             `json:"user"`
+	Hackathon             *Hackathon        `json:"hackathon"`
+	WhyAttend             []string          `json:"whyAttend"`
+	WhatDoYouWantToLearn  []string          `json:"whatDoYouWantToLearn"`
+	ShareInfoWithSponsors bool              `json:"shareInfoWithSponsors"`
+	ResumeURL             *string           `json:"resumeUrl"`
+}
 
 type HackathonApplicationInput struct {
 	WhyAttend             []string        `json:"whyAttend"`
@@ -114,6 +124,49 @@ type UsersConnection struct {
 }
 
 func (UsersConnection) IsConnection() {}
+
+type ApplicationStatus string
+
+const (
+	ApplicationStatusAccepted ApplicationStatus = "ACCEPTED"
+	ApplicationStatusWaiting  ApplicationStatus = "WAITING"
+	ApplicationStatusRejected ApplicationStatus = "REJECTED"
+)
+
+var AllApplicationStatus = []ApplicationStatus{
+	ApplicationStatusAccepted,
+	ApplicationStatusWaiting,
+	ApplicationStatusRejected,
+}
+
+func (e ApplicationStatus) IsValid() bool {
+	switch e {
+	case ApplicationStatusAccepted, ApplicationStatusWaiting, ApplicationStatusRejected:
+		return true
+	}
+	return false
+}
+
+func (e ApplicationStatus) String() string {
+	return string(e)
+}
+
+func (e *ApplicationStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ApplicationStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ApplicationStatus", str)
+	}
+	return nil
+}
+
+func (e ApplicationStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
 
 type HackathonStatus string
 

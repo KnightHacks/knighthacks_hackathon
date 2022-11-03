@@ -90,8 +90,7 @@ type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     events(first: Int! = 25, after: ID): EventsConnection! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
 
-    pending(userId: ID!): Boolean! @goField(forceResolver: true)
-    attending(userId: ID!): Boolean! @goField(forceResolver: true)
+    applications(first: Int! = 25, after: ID, status: ApplicationStatus!): [HackathonApplication!]! @goField(forceResolver: true) @hasRole(role: ADMIN)
 }
 
 enum HackathonStatus {
@@ -143,10 +142,26 @@ input HackathonApplicationInput {
     resume: Upload
 }
 
+enum ApplicationStatus {
+    ACCEPTED, WAITING, REJECTED
+}
+
+type HackathonApplication {
+    id: ID! # this is the user's ID, it's unique per hackathon
+    status: ApplicationStatus!
+    user: User!
+    hackathon: Hackathon!
+    whyAttend: [String!]!
+    whatDoYouWantToLearn: [String!]!
+    shareInfoWithSponsors: Boolean!
+    resumeUrl: String
+}
+
 type Query {
     currentHackathon: Hackathon
     hackathons(filter: HackathonFilter!): [Hackathon!]!
     getHackathon(id: ID!): Hackathon!
+    getApplication(hackathonId: ID!, userId: ID!): HackathonApplication @hasRole(role: NORMAL) # will manually check if userId = the logged in user
 }
 
 type Mutation {
@@ -156,5 +171,7 @@ type Mutation {
 
     acceptApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
     denyApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
+
+    updateApplication(hackathonId: ID!, userId: ID!, input: HackathonApplicationInput!): HackathonApplication @hasRole(role: NORMAL) # will manually check if userId = the logged in user
     applyToHackathon(hackathonId: ID!, input: HackathonApplicationInput!): Boolean! @hasRole(role: NORMAL)
 }
