@@ -52,6 +52,13 @@ type EventsConnection implements Connection {
     events: [Event!]!
 }
 
+type HackathonApplicationConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+
+    applications: [HackathonApplication!]!
+}
+
 enum Role @goModel(model: "github.com/KnightHacks/knighthacks_shared/models.Role") {
     ADMIN
     """
@@ -87,7 +94,7 @@ type Hackathon @key(fields: "id") @key(fields: "term { year semester }"){
     events(first: Int! = 25, after: ID): EventsConnection! @goField(forceResolver: true)
     status: HackathonStatus! @goField(forceResolver: true)
 
-    applications(first: Int! = 25, after: ID, status: ApplicationStatus!): [HackathonApplication!]! @goField(forceResolver: true) @hasRole(role: ADMIN)
+    applications(first: Int! = 25, after: ID, status: ApplicationStatus!): HackathonApplicationConnection! @goField(forceResolver: true) @hasRole(role: ADMIN)
 }
 
 enum HackathonStatus {

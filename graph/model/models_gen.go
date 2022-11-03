@@ -32,14 +32,14 @@ type EventsConnection struct {
 func (EventsConnection) IsConnection() {}
 
 type Hackathon struct {
-	ID           string                  `json:"id"`
-	Term         *Term                   `json:"term"`
-	StartDate    time.Time               `json:"startDate"`
-	EndDate      time.Time               `json:"endDate"`
-	Sponsors     *SponsorsConnection     `json:"sponsors"`
-	Events       *EventsConnection       `json:"events"`
-	Status       HackathonStatus         `json:"status"`
-	Applications []*HackathonApplication `json:"applications"`
+	ID           string                          `json:"id"`
+	Term         *Term                           `json:"term"`
+	StartDate    time.Time                       `json:"startDate"`
+	EndDate      time.Time                       `json:"endDate"`
+	Sponsors     *SponsorsConnection             `json:"sponsors"`
+	Events       *EventsConnection               `json:"events"`
+	Status       HackathonStatus                 `json:"status"`
+	Applications *HackathonApplicationConnection `json:"applications"`
 }
 
 func (Hackathon) IsEntity() {}
@@ -54,6 +54,14 @@ type HackathonApplication struct {
 	ShareInfoWithSponsors bool              `json:"shareInfoWithSponsors"`
 	ResumeURL             *string           `json:"resumeUrl"`
 }
+
+type HackathonApplicationConnection struct {
+	TotalCount   int                     `json:"totalCount"`
+	PageInfo     *models.PageInfo        `json:"pageInfo"`
+	Applications []*HackathonApplication `json:"applications"`
+}
+
+func (HackathonApplicationConnection) IsConnection() {}
 
 type HackathonApplicationInput struct {
 	WhyAttend             []string        `json:"whyAttend"`

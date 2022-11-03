@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
@@ -67,8 +66,14 @@ func (r *hackathonResolver) Status(ctx context.Context, obj *model.Hackathon) (m
 }
 
 // Applications is the resolver for the applications field.
-func (r *hackathonResolver) Applications(ctx context.Context, obj *model.Hackathon, first int, after *string, status model.ApplicationStatus) ([]*model.HackathonApplication, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *hackathonResolver) Applications(ctx context.Context, obj *model.Hackathon, first int, after *string, status model.ApplicationStatus) (*model.HackathonApplicationConnection, error) {
+	hackathons, total, err := r.Repository.GetApplicationsByHackathon(ctx, obj, first, after, status)
+
+	connection := model.HackathonApplicationConnection{Applications: hackathons,
+		TotalCount: total,
+		PageInfo:   pagination.GetPageInfo(hackathons[0].ID, hackathons[len(hackathons)-1].ID),
+	}
+	return &connection, err
 }
 
 // CreateHackathon is the resolver for the createHackathon field.
@@ -98,12 +103,14 @@ func (r *mutationResolver) DenyApplicant(ctx context.Context, hackathonID string
 
 // UpdateApplication is the resolver for the updateApplication field.
 func (r *mutationResolver) UpdateApplication(ctx context.Context, hackathonID string, userID string, input model.HackathonApplicationInput) (*model.HackathonApplication, error) {
-	panic(fmt.Errorf("not implemented"))
+	// TODO: Implement auth stuff, admin only if not self
+	return r.Repository.UpdateApplication(ctx, hackathonID, userID, input)
 }
 
 // ApplyToHackathon is the resolver for the applyToHackathon field.
 func (r *mutationResolver) ApplyToHackathon(ctx context.Context, hackathonID string, input model.HackathonApplicationInput) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	// TODO: ensure you haven't already applied
+	return r.Repository.ApplyToHackathon(ctx, hackathonID, input)
 }
 
 // CurrentHackathon is the resolver for the currentHackathon field.
@@ -123,7 +130,8 @@ func (r *queryResolver) GetHackathon(ctx context.Context, id string) (*model.Hac
 
 // GetApplication is the resolver for the getApplication field.
 func (r *queryResolver) GetApplication(ctx context.Context, hackathonID string, userID string) (*model.HackathonApplication, error) {
-	panic(fmt.Errorf("not implemented"))
+	// TODO: Implement auth stuff, admin only if not self
+	return r.GetApplication(ctx, hackathonID, userID)
 }
 
 // Hackathons is the resolver for the hackathons field.
@@ -133,7 +141,7 @@ func (r *sponsorResolver) Hackathons(ctx context.Context, obj *model.Sponsor) ([
 
 // Applications is the resolver for the applications field.
 func (r *userResolver) Applications(ctx context.Context, obj *model.User) ([]*model.HackathonApplication, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Repository.GetApplicationsByUser(ctx, obj)
 }
 
 // Event returns generated.EventResolver implementation.

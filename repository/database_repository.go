@@ -805,3 +805,28 @@ func (r *DatabaseRepository) GetHackathonEvents(ctx context.Context, hackathon *
 	}
 	return events, total, err
 }
+
+func (r *DatabaseRepository) GetApplicationsByUser(ctx context.Context, obj *model.User) ([]*model.HackathonApplication, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) GetApplication(ctx context.Context, hackathonID string, userID string) (*model.HackathonApplication, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID string, input model.HackathonApplicationInput) (bool, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID string, userID string, input model.HackathonApplicationInput) (*model.HackathonApplication, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *DatabaseRepository) GetApplicationsByHackathon(ctx context.Context, obj *model.Hackathon, first int, after *string, status model.ApplicationStatus) ([]*model.HackathonApplication, int, error) {
+	//TODO implement me
+	panic("implement me")
+}
