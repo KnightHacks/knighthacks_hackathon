@@ -918,9 +918,9 @@ input HackathonUpdateInput {
 }
 
 input HackathonApplicationInput {
-    whyAttend: [String!]!
-    whatDoYouWantToLearn: [String!]!
-    shareInfoWithSponsors: Boolean!
+    whyAttend: [String!]
+    whatDoYouWantToLearn: [String!]
+    shareInfoWithSponsors: Boolean
     resume: Upload
 }
 
@@ -929,7 +929,7 @@ enum ApplicationStatus {
 }
 
 type HackathonApplication {
-    id: ID! # this is the user's ID, it's unique per hackathon
+    id: ID!
     status: ApplicationStatus!
     user: User!
     hackathon: Hackathon!
@@ -6665,7 +6665,7 @@ func (ec *executionContext) unmarshalInputHackathonApplicationInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("whyAttend"))
-			it.WhyAttend, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			it.WhyAttend, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6673,7 +6673,7 @@ func (ec *executionContext) unmarshalInputHackathonApplicationInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("whatDoYouWantToLearn"))
-			it.WhatDoYouWantToLearn, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			it.WhatDoYouWantToLearn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6681,7 +6681,7 @@ func (ec *executionContext) unmarshalInputHackathonApplicationInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shareInfoWithSponsors"))
-			it.ShareInfoWithSponsors, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.ShareInfoWithSponsors, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

@@ -66,7 +66,7 @@ func (HackathonApplicationConnection) IsConnection() {}
 type HackathonApplicationInput struct {
 	WhyAttend             []string        `json:"whyAttend"`
 	WhatDoYouWantToLearn  []string        `json:"whatDoYouWantToLearn"`
-	ShareInfoWithSponsors bool            `json:"shareInfoWithSponsors"`
+	ShareInfoWithSponsors *bool           `json:"shareInfoWithSponsors"`
 	Resume                *graphql.Upload `json:"resume"`
 }
 

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 	"github.com/KnightHacks/knighthacks_shared/database"
 	"github.com/KnightHacks/knighthacks_shared/structure"
@@ -22,8 +23,9 @@ type DatabaseRepository struct {
 }
 
 var (
-	NoHackathonByTerm = errors.New("unable to find hackathon by term")
-	HackathonNotFound = errors.New("hackathon not found")
+	NoHackathonByTerm        = errors.New("unable to find hackathon by term")
+	ApplicationAlreadyExists = errors.New("application already exists")
+	HackathonNotFound        = errors.New("hackathon not found")
 )
 
 func NewDatabaseRepository(databasePool *pgxpool.Pool) *DatabaseRepository {
@@ -807,26 +809,159 @@ func (r *DatabaseRepository) GetHackathonEvents(ctx context.Context, hackathon *
 }
 
 func (r *DatabaseRepository) GetApplicationsByUser(ctx context.Context, obj *model.User) ([]*model.HackathonApplication, error) {
-	//TODO implement me
-	panic("implement me")
+	var applications []*model.HackathonApplication
+	var resumeAzureBlobId string
+	rows, err := r.DatabasePool.Query(ctx, "SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,resume_azure_blob_id,application_status FROM hackathon_applications WHERE user_id = $1", obj.ID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return applications, nil
+		}
+		return nil, err
+	}
+
+	for rows.Next() {
+		var application model.HackathonApplication
+		err = rows.Scan(&application.WhyAttend, &application.WhatDoYouWantToLearn, &application.ShareInfoWithSponsors, &resumeAzureBlobId, &application.Status)
+		if err != nil {
+			return nil, err
+		}
+		applications = append(applications, &application)
+	}
+	return applications, nil
 }
 
 func (r *DatabaseRepository) GetApplication(ctx context.Context, hackathonID string, userID string) (*model.HackathonApplication, error) {
-	//TODO implement me
-	panic("implement me")
+	return r.GetApplicationWithQueryable(ctx, r.DatabasePool, hackathonID, userID)
 }
 
-func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID string, input model.HackathonApplicationInput) (bool, error) {
-	//TODO implement me
-	panic("implement me")
+func (r *DatabaseRepository) GetApplicationWithQueryable(ctx context.Context, queryable database.Queryable, hackathonID string, userID string) (*model.HackathonApplication, error) {
+	var application model.HackathonApplication
+	var resumeAzureBlobId string
+	row := queryable.QueryRow(ctx, "SELECT id, why_attend,what_do_you_want_to_learn,share_info_with_sponsors,resume_azure_blob_id,application_status FROM hackathon_applications WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID)
+
+	err := row.Scan(&application.ID, &application.WhyAttend, &application.WhatDoYouWantToLearn, &application.ShareInfoWithSponsors, &resumeAzureBlobId, &application.Status)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+	if !application.Status.IsValid() {
+		return nil, fmt.Errorf("%s is an invalid application status", application.Status.String())
+	}
+	return &application, nil
+}
+
+func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID string, userId string, input model.HackathonApplicationInput) (bool, error) {
+	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		application, err := r.GetApplicationWithQueryable(ctx, tx, hackathonID, userId)
+		if err != nil {
+			return err
+		}
+		if application != nil {
+			return ApplicationAlreadyExists
+		}
+
+		// TODO: IMPLEMENT AZURE BLOB UPLOAD
+
+		_, err = tx.Exec(
+			ctx,
+			`INSERT INTO public.hackathon_applications (user_id, hackathon_id, why_attend, what_do_you_want_to_learn, share_info_with_sponsors, application_status) 
+					VALUES ($1, $2, $3, $4, $5, $6)`,
+			userId,
+			hackathonID,
+			input.WhyAttend,
+			input.WhatDoYouWantToLearn,
+			input.ShareInfoWithSponsors,
+			model.ApplicationStatusWaiting)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID string, userID string, input model.HackathonApplicationInput) (*model.HackathonApplication, error) {
-	//TODO implement me
-	panic("implement me")
+	var resumeAzureBlobId string
+	if input.Resume != nil {
+		// TODO: IMPLEMENT THIS
+	}
+	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		if input.WhyAttend != nil {
+			_, err := tx.Exec(ctx, "UPDATE hackathon_applications SET why_attend = $3 WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID, input.WhyAttend)
+			if err != nil {
+				return err
+			}
+		}
+		if input.WhatDoYouWantToLearn != nil {
+			_, err := tx.Exec(ctx, "UPDATE hackathon_applications SET what_do_you_want_to_learn = $3 WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID, input.WhatDoYouWantToLearn)
+			if err != nil {
+				return err
+			}
+		}
+		if input.ShareInfoWithSponsors != nil {
+			_, err := tx.Exec(ctx, "UPDATE hackathon_applications SET share_info_with_sponsors = $3 WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID, input.ShareInfoWithSponsors)
+			if err != nil {
+				return err
+			}
+		}
+		if input.Resume != nil {
+			_, err := tx.Exec(ctx, "UPDATE hackathon_applications SET resume_azure_blob_id = $3 WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID, resumeAzureBlobId)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
 }
 
 func (r *DatabaseRepository) GetApplicationsByHackathon(ctx context.Context, obj *model.Hackathon, first int, after *string, status model.ApplicationStatus) ([]*model.HackathonApplication, int, error) {
-	//TODO implement me
-	panic("implement me")
+	var applications []*model.HackathonApplication
+	var resumeAzureBlobId string
+	var err error
+	afterInt, err := strconv.Atoi(*after)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	tx, err := r.DatabasePool.Begin(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var rows pgx.Rows
+
+	if after != nil {
+		rows, err = tx.Query(ctx, `SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,resume_azure_blob_id,application_status FROM hackathon_applications WHERE hackathon_id = $1 AND user_id > $2 ORDER BY user_id DESC LIMIT $3`, obj.ID, afterInt, first)
+	} else {
+		rows, err = tx.Query(ctx, `SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,resume_azure_blob_id,application_status FROM hackathon_applications WHERE hackathon_id = $1 ORDER BY user_id DESC LIMIT $2`, obj.ID, first)
+	}
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return []*model.HackathonApplication{}, 0, nil
+		}
+		return nil, 0, err
+	}
+
+	for rows.Next() {
+		var application model.HackathonApplication
+		err = rows.Scan(&application.WhyAttend, &application.WhatDoYouWantToLearn, &application.ShareInfoWithSponsors, &resumeAzureBlobId, &application.Status)
+		if err != nil {
+			return nil, 0, err
+		}
+		applications = append(applications, &application)
+	}
+	return applications, 0, nil
 }

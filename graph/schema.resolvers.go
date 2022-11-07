@@ -5,10 +5,12 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
+	"github.com/KnightHacks/knighthacks_shared/auth"
 	"github.com/KnightHacks/knighthacks_shared/pagination"
 )
 
@@ -109,8 +111,12 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, hackathonID st
 
 // ApplyToHackathon is the resolver for the applyToHackathon field.
 func (r *mutationResolver) ApplyToHackathon(ctx context.Context, hackathonID string, input model.HackathonApplicationInput) (bool, error) {
-	// TODO: ensure you haven't already applied
-	return r.Repository.ApplyToHackathon(ctx, hackathonID, input)
+	claims, ok := ctx.Value("AuthorizationUserClaims").(*auth.UserClaims)
+	if !ok {
+		return false, errors.New("unable to retrieve user claims, most likely forgot to set @hasRole directive")
+	}
+
+	return r.Repository.ApplyToHackathon(ctx, hackathonID, claims.UserID, input)
 }
 
 // CurrentHackathon is the resolver for the currentHackathon field.

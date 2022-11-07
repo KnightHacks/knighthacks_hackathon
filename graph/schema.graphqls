@@ -140,9 +140,9 @@ input HackathonUpdateInput {
 }
 
 input HackathonApplicationInput {
-    whyAttend: [String!]!
-    whatDoYouWantToLearn: [String!]!
-    shareInfoWithSponsors: Boolean!
+    whyAttend: [String!]
+    whatDoYouWantToLearn: [String!]
+    shareInfoWithSponsors: Boolean
     resume: Upload
 }
 
@@ -151,7 +151,7 @@ enum ApplicationStatus {
 }
 
 type HackathonApplication {
-    id: ID! # this is the user's ID, it's unique per hackathon
+    id: ID!
     status: ApplicationStatus!
     user: User!
     hackathon: Hackathon!
