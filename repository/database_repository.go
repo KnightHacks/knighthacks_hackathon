@@ -813,7 +813,7 @@ func (r *DatabaseRepository) GetApplicationsByUser(ctx context.Context, obj *mod
 	var resumeAzureBlobId string
 	rows, err := r.DatabasePool.Query(ctx, "SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,resume_azure_blob_id,application_status FROM hackathon_applications WHERE user_id = $1", obj.ID)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return applications, nil
 		}
 		return nil, err
@@ -842,7 +842,7 @@ func (r *DatabaseRepository) GetApplicationWithQueryable(ctx context.Context, qu
 	err := row.Scan(&application.ID, &application.WhyAttend, &application.WhatDoYouWantToLearn, &application.ShareInfoWithSponsors, &resumeAzureBlobId, &application.Status)
 
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		} else {
 			return nil, err
@@ -949,7 +949,7 @@ func (r *DatabaseRepository) GetApplicationsByHackathon(ctx context.Context, obj
 	}
 
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return []*model.HackathonApplication{}, 0, nil
 		}
 		return nil, 0, err
