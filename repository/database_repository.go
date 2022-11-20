@@ -102,9 +102,7 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, inp
 		len(input.AddedEvents) == 0 &&
 		len(input.RemovedEvents) == 0 &&
 		len(input.AddedSponsors) == 0 &&
-		len(input.RemovedSponsors) == 0 &&
-		len(input.AddedParticipants) == 0 &&
-		len(input.RemovedParticipants) == 0 {
+		len(input.RemovedSponsors) == 0 {
 		return nil, errors.New("empty input field")
 	}
 	var hackathon *model.Hackathon
@@ -145,17 +143,6 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, inp
 		}
 		if len(input.RemovedSponsors) > 0 {
 			if err = r.removeHackathonSponsors(ctx, tx, hackathonId, input.RemovedSponsors); err != nil {
-				return err
-			}
-		}
-
-		if len(input.AddedParticipants) > 0 {
-			if err = r.addHackathonParticipants(ctx, tx, hackathonId, input.AddedParticipants); err != nil {
-				return err
-			}
-		}
-		if len(input.RemovedParticipants) > 0 {
-			if err = r.removeHackathonParticipants(ctx, tx, hackathonId, input.RemovedParticipants); err != nil {
 				return err
 			}
 		}
@@ -261,16 +248,6 @@ func (r *DatabaseRepository) removeHackathonSponsors(ctx context.Context, tx pgx
 		}
 	}
 	return nil
-}
-
-func (r *DatabaseRepository) addHackathonParticipants(ctx context.Context, tx pgx.Tx, hackathonId int, participants []string) error {
-	// TODO: implement me
-	panic("implement me")
-}
-
-func (r *DatabaseRepository) removeHackathonParticipants(ctx context.Context, tx pgx.Tx, hackathonId int, participants []string) error {
-	// TODO: implement me
-	panic("implement me")
 }
 
 func (r *DatabaseRepository) GetHackathon(ctx context.Context, id string) (*model.Hackathon, error) {

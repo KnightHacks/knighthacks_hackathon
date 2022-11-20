@@ -85,14 +85,12 @@ type HackathonFilter struct {
 }
 
 type HackathonUpdateInput struct {
-	Year                *int      `json:"year"`
-	Semester            *Semester `json:"semester"`
-	AddedSponsors       []string  `json:"addedSponsors"`
-	RemovedSponsors     []string  `json:"removedSponsors"`
-	AddedEvents         []string  `json:"addedEvents"`
-	RemovedEvents       []string  `json:"removedEvents"`
-	AddedParticipants   []string  `json:"addedParticipants"`
-	RemovedParticipants []string  `json:"removedParticipants"`
+	Year            *int      `json:"year"`
+	Semester        *Semester `json:"semester"`
+	AddedSponsors   []string  `json:"addedSponsors"`
+	RemovedSponsors []string  `json:"removedSponsors"`
+	AddedEvents     []string  `json:"addedEvents"`
+	RemovedEvents   []string  `json:"removedEvents"`
 }
 
 type Sponsor struct {

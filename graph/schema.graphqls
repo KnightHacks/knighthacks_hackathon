@@ -135,8 +135,6 @@ input HackathonUpdateInput {
     removedSponsors: [ID!]
     addedEvents: [ID!]
     removedEvents: [ID!]
-    addedParticipants: [ID!]
-    removedParticipants: [ID!]
 }
 
 input HackathonApplicationInput {

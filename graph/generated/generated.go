@@ -913,8 +913,6 @@ input HackathonUpdateInput {
     removedSponsors: [ID!]
     addedEvents: [ID!]
     removedEvents: [ID!]
-    addedParticipants: [ID!]
-    removedParticipants: [ID!]
 }
 
 input HackathonApplicationInput {
@@ -6810,7 +6808,7 @@ func (ec *executionContext) unmarshalInputHackathonUpdateInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"year", "semester", "addedSponsors", "removedSponsors", "addedEvents", "removedEvents", "addedParticipants", "removedParticipants"}
+	fieldsInOrder := [...]string{"year", "semester", "addedSponsors", "removedSponsors", "addedEvents", "removedEvents"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6862,22 +6860,6 @@ func (ec *executionContext) unmarshalInputHackathonUpdateInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removedEvents"))
 			it.RemovedEvents, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "addedParticipants":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addedParticipants"))
-			it.AddedParticipants, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "removedParticipants":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removedParticipants"))
-			it.RemovedParticipants, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
