@@ -9,10 +9,7 @@ import (
 	"github.com/KnightHacks/knighthacks_shared/structure"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"log"
-
 	"strconv"
-	"time"
 )
 
 // DatabaseRepository
@@ -267,24 +264,13 @@ func (r *DatabaseRepository) removeHackathonSponsors(ctx context.Context, tx pgx
 }
 
 func (r *DatabaseRepository) addHackathonParticipants(ctx context.Context, tx pgx.Tx, hackathonId int, participants []string) error {
-	for _, participantId := range participants {
-		_, err := tx.Exec(ctx, "INSERT INTO hackathon_participants (hackathon_id, user_id) VALUES ($1, $2)", hackathonId, participantId)
-		if err != nil {
-			return err
-		}
-
-	}
-	return nil
+	// TODO: implement me
+	panic("implement me")
 }
 
 func (r *DatabaseRepository) removeHackathonParticipants(ctx context.Context, tx pgx.Tx, hackathonId int, participants []string) error {
-	for _, participantId := range participants {
-		_, err := tx.Exec(ctx, "DELETE FROM hackathon_participants WHERE hackathon_id = $1 AND user_id = $2", hackathonId, participantId)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	// TODO: implement me
+	panic("implement me")
 }
 
 func (r *DatabaseRepository) GetHackathon(ctx context.Context, id string) (*model.Hackathon, error) {
@@ -465,57 +451,13 @@ WHERE terms.year = $1`
 }
 
 func (r *DatabaseRepository) AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		var acceptedDate *time.Time
-		err := tx.QueryRow(ctx, "SELECT accepted_date FROM hackathon_participants WHERE user_id = $1 AND hackathon_id = $2", hackathonID, userID).Scan(acceptedDate)
-		if err != nil {
-			return err
-		}
-		log.Printf("acceptedDate=%v\n", acceptedDate)
-		if acceptedDate == nil {
-			// TODO: check how this is handled, maybe the accepted is null in postgres but the pgx representation is just 0 time?
-			_, err = tx.Exec(ctx, "INSERT INTO hackathon_participants (user_id, hackathon_id, accepted_date) VALUES ($1, $2, $3)", userID, hackathonID, time.Now().UTC())
-			if err != nil {
-				return err
-			}
-		} else {
-			return errors.New("this user has already been accepted to this hackathon")
-		}
-		return nil
-	})
-
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	// TODO: implement me
+	panic("implement me")
 }
 
 func (r *DatabaseRepository) DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		var acceptedDate *time.Time
-		err := tx.QueryRow(ctx, "SELECT accepted_date FROM hackathon_participants WHERE user_id = $1 AND hackathon_id = $2", hackathonID, userID).Scan(acceptedDate)
-		if err != nil {
-			return err
-		}
-		log.Printf("acceptedDate=%v\n", acceptedDate)
-		if acceptedDate != nil {
-			// TODO: check how this is handled, maybe the accepted is null in postgres but the pgx representation is just 0 time?
-			return errors.New("this user has already been accepted to this hackathon")
-		} else {
-			_, err = tx.Exec(ctx, "DELETE FROM hackathon_participants WHERE user_id = $1 AND hackathon_id = $2", userID, hackathonID)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	// TODO: implement me
+	panic("implement me")
 }
 
 func (r *DatabaseRepository) GetHackathonsBySponsor(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error) {
@@ -530,62 +472,6 @@ FROM hackathons
          FULL JOIN terms ON hackathons.term_id = terms.id
          INNER JOIN hackathon_sponsors on hackathons.id = hackathon_sponsors.hackathon_id
 WHERE hackathon_sponsors.sponsor_id = $1`
-
-	intId, err := strconv.Atoi(obj.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := r.DatabasePool.Query(ctx, query, intId)
-	hackathons := make([]*model.Hackathon, 0, 10)
-
-	for rows.Next() {
-		var hackathon = model.Hackathon{Term: new(model.Term)}
-		var termId int
-		err = rows.Scan(
-			&hackathon.ID,
-			&hackathon.StartDate,
-			&hackathon.EndDate,
-			&termId,
-			&hackathon.Term.Semester,
-			&hackathon.Term.Year,
-		)
-		if err != nil {
-			return nil, err
-		}
-		r.TermBiMap.Put(termId, hackathon.Term)
-		hackathons = append(hackathons, &hackathon)
-	}
-
-	return hackathons, err
-}
-
-func (r *DatabaseRepository) GetHackathonsByUser(ctx context.Context, obj *model.User, attended bool) ([]*model.Hackathon, error) {
-	var query string
-
-	if attended {
-		query = `SELECT hackathons.id,
-       hackathons.start_date,
-       hackathons.end_date,
-       terms.id,
-       terms.semester,
-       terms.year
-FROM hackathons
-         FULL JOIN terms ON hackathons.term_id = terms.id
-         INNER JOIN hackathon_participants on hackathons.id = hackathon_participants.hackathon_id
-WHERE hackathon_participants.user_id = $1 AND hackathon_participants.accepted_date IS NOT NULL`
-	} else {
-		query = `SELECT hackathons.id,
-       hackathons.start_date,
-       hackathons.end_date,
-       terms.id,
-       terms.semester,
-       terms.year
-FROM hackathons
-         FULL JOIN terms ON hackathons.term_id = terms.id
-         INNER JOIN hackathon_participants on hackathons.id = hackathon_participants.hackathon_id
-WHERE hackathon_participants.user_id = $1 AND hackathon_participants.accepted_date IS NULL`
-	}
 
 	intId, err := strconv.Atoi(obj.ID)
 	if err != nil {
@@ -645,93 +531,6 @@ WHERE events.id = $1`, intId)
 	}
 	r.TermBiMap.Put(termId, hackathon.Term)
 	return &hackathon, err
-}
-
-// TODO: Change attending/pending to a user status enum
-
-func (r *DatabaseRepository) IsUserAttending(ctx context.Context, hackathon *model.Hackathon, userID string) (bool, error) {
-	var exists int
-	err := r.DatabasePool.QueryRow(ctx, `SELECT 1
-FROM hackathon_participants
-WHERE user_id = $1
-  AND hackathon_id = $2
-  AND accepted_date IS NOT NULL`, userID, hackathon.ID).Scan(&exists)
-
-	if err != nil {
-		return false, err
-	}
-
-	return exists == 1, nil
-}
-
-func (r *DatabaseRepository) IsUserPending(ctx context.Context, hackathon *model.Hackathon, userID string) (bool, error) {
-	var exists int
-	err := r.DatabasePool.QueryRow(ctx, `SELECT 1
-FROM hackathon_participants
-WHERE user_id = $1
-  AND hackathon_id = $2
-  AND accepted_date IS NULL`, userID, hackathon.ID).Scan(&exists)
-
-	if err != nil {
-		return false, err
-	}
-
-	return exists == 1, nil
-}
-
-func (r *DatabaseRepository) GetHackathonApplicants(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.User, int, error) {
-	return r.getHackathonUsers(ctx, hackathon, first, after, false)
-}
-
-func (r *DatabaseRepository) GetHackathonAttendees(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.User, int, error) {
-	return r.getHackathonUsers(ctx, hackathon, first, after, true)
-}
-
-func (r *DatabaseRepository) getHackathonUsers(ctx context.Context, hackathon *model.Hackathon, first int, after string, attending bool) ([]*model.User, int, error) {
-	var countQuery string
-	var userQuery string
-	if attending {
-		countQuery = `SELECT COUNT(*) FROM hackathon_participants WHERE hackathon_id = $1 AND accepted_date IS NOT NULL`
-		userQuery = `SELECT user_id FROM hackathon_participants WHERE hackathon_id = $1 AND accepted_date IS NOT NULL AND user_id > $2 ORDER BY user_id DESC LIMIT $3`
-	} else {
-		countQuery = `SELECT COUNT(*) FROM hackathon_participants WHERE hackathon_id = $1 AND accepted_date IS NULL`
-		userQuery = `SELECT user_id FROM hackathon_participants WHERE hackathon_id = $1 AND accepted_date IS NULL AND user_id > $2 ORDER BY user_id DESC LIMIT $3`
-	}
-
-	users := make([]*model.User, 0, first)
-	var total int
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		rows, err := tx.Query(
-			ctx,
-			userQuery,
-			hackathon.ID,
-			after,
-			first,
-		)
-		if err != nil {
-			return err
-		}
-		for rows.Next() {
-			var user model.User
-			err = rows.Scan(&user.ID)
-			if err != nil {
-				return err
-			}
-			users = append(users, &user)
-		}
-		if err = rows.Err(); err != nil {
-			return err
-		}
-		err = tx.QueryRow(ctx, countQuery, hackathon.ID).Scan(&total)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, 0, err
-	}
-	return users, total, err
 }
 
 func (r *DatabaseRepository) GetHackathonSponsors(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.Sponsor, int, error) {

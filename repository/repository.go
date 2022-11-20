@@ -18,21 +18,11 @@ type Repository interface {
 
 	AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
 	DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
-	// TODO: DELETE IsUserAttending & IsUserPending
-	IsUserAttending(ctx context.Context, hackathon *model.Hackathon, userID string) (bool, error)
-	IsUserPending(ctx context.Context, hackathon *model.Hackathon, userID string) (bool, error)
-
 	// Array returns
 
 	GetHackathons(ctx context.Context, filter *model.HackathonFilter) ([]*model.Hackathon, error)
-	// TODO: DELETE GetHackathonsByUser
-	GetHackathonsByUser(ctx context.Context, obj *model.User, attended bool) ([]*model.Hackathon, error)
 	GetHackathonsBySponsor(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error)
 
-	// TODO: DELETE GetHackathonApplicants & GetHackathonAttendees
-
-	GetHackathonApplicants(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.User, int, error)
-	GetHackathonAttendees(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.User, int, error)
 	GetHackathonSponsors(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.Sponsor, int, error)
 	GetHackathonEvents(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.Event, int, error)
 
