@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/KnightHacks/knighthacks_shared/models"
 )
 
@@ -31,20 +32,43 @@ type EventsConnection struct {
 func (EventsConnection) IsConnection() {}
 
 type Hackathon struct {
-	ID         string              `json:"id"`
-	Term       *Term               `json:"term"`
-	StartDate  time.Time           `json:"startDate"`
-	EndDate    time.Time           `json:"endDate"`
-	Applicants *UsersConnection    `json:"applicants"`
-	Attendees  *UsersConnection    `json:"attendees"`
-	Sponsors   *SponsorsConnection `json:"sponsors"`
-	Events     *EventsConnection   `json:"events"`
-	Status     HackathonStatus     `json:"status"`
-	Pending    bool                `json:"pending"`
-	Attending  bool                `json:"attending"`
+	ID           string                          `json:"id"`
+	Term         *Term                           `json:"term"`
+	StartDate    time.Time                       `json:"startDate"`
+	EndDate      time.Time                       `json:"endDate"`
+	Sponsors     *SponsorsConnection             `json:"sponsors"`
+	Events       *EventsConnection               `json:"events"`
+	Status       HackathonStatus                 `json:"status"`
+	Applications *HackathonApplicationConnection `json:"applications"`
 }
 
 func (Hackathon) IsEntity() {}
+
+type HackathonApplication struct {
+	ID                    string            `json:"id"`
+	Status                ApplicationStatus `json:"status"`
+	User                  *User             `json:"user"`
+	Hackathon             *Hackathon        `json:"hackathon"`
+	WhyAttend             []string          `json:"whyAttend"`
+	WhatDoYouWantToLearn  []string          `json:"whatDoYouWantToLearn"`
+	ShareInfoWithSponsors bool              `json:"shareInfoWithSponsors"`
+	ResumeURL             *string           `json:"resumeUrl"`
+}
+
+type HackathonApplicationConnection struct {
+	TotalCount   int                     `json:"totalCount"`
+	PageInfo     *models.PageInfo        `json:"pageInfo"`
+	Applications []*HackathonApplication `json:"applications"`
+}
+
+func (HackathonApplicationConnection) IsConnection() {}
+
+type HackathonApplicationInput struct {
+	WhyAttend             []string        `json:"whyAttend"`
+	WhatDoYouWantToLearn  []string        `json:"whatDoYouWantToLearn"`
+	ShareInfoWithSponsors *bool           `json:"shareInfoWithSponsors"`
+	Resume                *graphql.Upload `json:"resume"`
+}
 
 type HackathonCreateInput struct {
 	Year      int       `json:"year"`
@@ -61,14 +85,12 @@ type HackathonFilter struct {
 }
 
 type HackathonUpdateInput struct {
-	Year                *int      `json:"year"`
-	Semester            *Semester `json:"semester"`
-	AddedSponsors       []string  `json:"addedSponsors"`
-	RemovedSponsors     []string  `json:"removedSponsors"`
-	AddedEvents         []string  `json:"addedEvents"`
-	RemovedEvents       []string  `json:"removedEvents"`
-	AddedParticipants   []string  `json:"addedParticipants"`
-	RemovedParticipants []string  `json:"removedParticipants"`
+	Year            *int      `json:"year"`
+	Semester        *Semester `json:"semester"`
+	AddedSponsors   []string  `json:"addedSponsors"`
+	RemovedSponsors []string  `json:"removedSponsors"`
+	AddedEvents     []string  `json:"addedEvents"`
+	RemovedEvents   []string  `json:"removedEvents"`
 }
 
 type Sponsor struct {
@@ -92,9 +114,8 @@ type Term struct {
 }
 
 type User struct {
-	ID                 string       `json:"id"`
-	AttendedHackathons []*Hackathon `json:"attendedHackathons"`
-	AppliedHackathons  []*Hackathon `json:"appliedHackathons"`
+	ID           string                  `json:"id"`
+	Applications []*HackathonApplication `json:"applications"`
 }
 
 func (User) IsEntity() {}
@@ -106,6 +127,49 @@ type UsersConnection struct {
 }
 
 func (UsersConnection) IsConnection() {}
+
+type ApplicationStatus string
+
+const (
+	ApplicationStatusAccepted ApplicationStatus = "ACCEPTED"
+	ApplicationStatusWaiting  ApplicationStatus = "WAITING"
+	ApplicationStatusRejected ApplicationStatus = "REJECTED"
+)
+
+var AllApplicationStatus = []ApplicationStatus{
+	ApplicationStatusAccepted,
+	ApplicationStatusWaiting,
+	ApplicationStatusRejected,
+}
+
+func (e ApplicationStatus) IsValid() bool {
+	switch e {
+	case ApplicationStatusAccepted, ApplicationStatusWaiting, ApplicationStatusRejected:
+		return true
+	}
+	return false
+}
+
+func (e ApplicationStatus) String() string {
+	return string(e)
+}
+
+func (e *ApplicationStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ApplicationStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ApplicationStatus", str)
+	}
+	return nil
+}
+
+func (e ApplicationStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
 
 type HackathonStatus string
 
