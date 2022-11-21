@@ -5,26 +5,32 @@ package graph
 
 import (
 	"context"
+
 	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 )
 
+// FindEventByID is the resolver for the findEventByID field.
 func (r *entityResolver) FindEventByID(ctx context.Context, id string) (*model.Event, error) {
 	return &model.Event{ID: id}, nil
 }
 
+// FindHackathonByID is the resolver for the findHackathonByID field.
 func (r *entityResolver) FindHackathonByID(ctx context.Context, id string) (*model.Hackathon, error) {
 	return r.Repository.GetHackathon(ctx, id)
 }
 
+// FindHackathonByTermYearAndTermSemester is the resolver for the findHackathonByTermYearAndTermSemester field.
 func (r *entityResolver) FindHackathonByTermYearAndTermSemester(ctx context.Context, termYear int, termSemester model.Semester) (*model.Hackathon, error) {
 	return r.Repository.GetHackathonByTermYearAndTermSemester(ctx, termYear, termSemester)
 }
 
+// FindSponsorByID is the resolver for the findSponsorByID field.
 func (r *entityResolver) FindSponsorByID(ctx context.Context, id string) (*model.Sponsor, error) {
 	return &model.Sponsor{ID: id}, nil
 }
 
+// FindUserByID is the resolver for the findUserByID field.
 func (r *entityResolver) FindUserByID(ctx context.Context, id string) (*model.User, error) {
 	return &model.User{ID: id}, nil
 }
