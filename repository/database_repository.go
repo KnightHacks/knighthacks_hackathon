@@ -427,14 +427,26 @@ WHERE terms.year = $1`
 	return hackathons, err
 }
 
+func (r *DatabaseRepository) UpdateApplicantStatus(ctx context.Context, queryable database.Queryable, hackathonID string, userID string, status model.ApplicationStatus) error {
+	_, err := queryable.Exec(ctx, "UPDATE hackathon_applications SET application_status = $1 WHERE hackathon_id = $2 AND user_id = $3", status.String(), hackathonID, userID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *DatabaseRepository) AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
-	// TODO: implement me
-	panic("implement me")
+	if err := r.UpdateApplicantStatus(ctx, r.DatabasePool, hackathonID, userID, model.ApplicationStatusAccepted); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *DatabaseRepository) DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
-	// TODO: implement me
-	panic("implement me")
+	if err := r.UpdateApplicantStatus(ctx, r.DatabasePool, hackathonID, userID, model.ApplicationStatusRejected); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *DatabaseRepository) GetHackathonsBySponsor(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error) {
