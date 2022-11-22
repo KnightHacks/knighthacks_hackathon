@@ -7,8 +7,8 @@ import (
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 	"github.com/KnightHacks/knighthacks_shared/database"
 	"github.com/KnightHacks/knighthacks_shared/structure"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"strconv"
 )
 
@@ -339,7 +339,7 @@ func (r *DatabaseRepository) DeleteHackathon(ctx context.Context, id string) (bo
 // TODO: Change name to GetNextHackathon
 func (r *DatabaseRepository) GetCurrentHackathon(ctx context.Context) (*model.Hackathon, error) {
 	var hackathon model.Hackathon
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		var termId int
 		// TODO: Check validity of using DESC
 		err := tx.QueryRow(ctx, "SELECT id, term_id, start_date, end_date FROM hackathons WHERE end_date > CURRENT_DATE ORDER BY end_date DESC LIMIT 1").Scan(
@@ -525,7 +525,7 @@ WHERE events.id = $1`, intId)
 func (r *DatabaseRepository) GetHackathonSponsors(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.Sponsor, int, error) {
 	sponsors := make([]*model.Sponsor, 0, first)
 	var total int
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		rows, err := tx.Query(
 			ctx,
 			`SELECT sponsor_id FROM hackathon_sponsors WHERE hackathon_id = $1 AND sponsor_id > $2 ORDER BY sponsor_id DESC LIMIT $3`,
@@ -562,7 +562,7 @@ func (r *DatabaseRepository) GetHackathonSponsors(ctx context.Context, hackathon
 func (r *DatabaseRepository) GetHackathonEvents(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.Event, int, error) {
 	events := make([]*model.Event, 0, first)
 	var total int
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		rows, err := tx.Query(
 			ctx,
 			`SELECT id FROM events WHERE hackathon_id = $1 AND id > $2 ORDER BY id DESC LIMIT $3`,
@@ -643,7 +643,7 @@ func (r *DatabaseRepository) GetApplicationWithQueryable(ctx context.Context, qu
 }
 
 func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID string, userId string, input model.HackathonApplicationInput) (bool, error) {
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		application, err := r.GetApplicationWithQueryable(ctx, tx, hackathonID, userId)
 		if err != nil {
 			return err
@@ -680,7 +680,7 @@ func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID 
 	if input.Resume != nil {
 		// TODO: IMPLEMENT THIS
 	}
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		if input.WhyAttend != nil {
 			_, err := tx.Exec(ctx, "UPDATE hackathon_applications SET why_attend = $3 WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID, input.WhyAttend)
 			if err != nil {
