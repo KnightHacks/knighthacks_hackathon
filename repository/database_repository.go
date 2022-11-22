@@ -646,8 +646,6 @@ func (r *DatabaseRepository) GetApplicationWithQueryable(ctx context.Context, qu
 		&application.HackathonID,
 	)
 
-	err := row.Scan(&application.ID, &application.WhyAttend, &application.WhatDoYouWantToLearn, &application.ShareInfoWithSponsors, &resumeAzureBlobId, &application.Status)
-
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
