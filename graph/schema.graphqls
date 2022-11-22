@@ -148,15 +148,14 @@ enum ApplicationStatus {
     ACCEPTED, WAITING, REJECTED
 }
 
-type HackathonApplication {
+type HackathonApplication @key(fields: "id") {
     id: ID!
     status: ApplicationStatus!
-    user: User!
-    hackathon: Hackathon!
+    hackathon: Hackathon! @goField(forceResolver: true)
     whyAttend: [String!]!
     whatDoYouWantToLearn: [String!]!
     shareInfoWithSponsors: Boolean!
-    resumeUrl: String
+    resumeBase64: String @goField(forceResolver: true)
 }
 
 type Query {
