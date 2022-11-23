@@ -7,7 +7,6 @@ import (
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 	"github.com/KnightHacks/knighthacks_hackathon/repository"
 	"github.com/KnightHacks/knighthacks_shared/database"
-	"github.com/KnightHacks/knighthacks_shared/structure"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"os"
@@ -47,31 +46,18 @@ func TestMain(t *testing.M) {
 }
 
 func TestDatabaseRepository_AcceptApplicant(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
 	type args struct {
 		ctx         context.Context
 		hackathonID string
 		userID      string
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    bool
-		wantErr bool
-	}{
+	tests := []Test[args, bool]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.AcceptApplicant(tt.args.ctx, tt.args.hackathonID, tt.args.userID)
+			got, err := databaseRepository.AcceptApplicant(tt.args.ctx, tt.args.hackathonID, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AcceptApplicant() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -84,32 +70,20 @@ func TestDatabaseRepository_AcceptApplicant(t *testing.T) {
 }
 
 func TestDatabaseRepository_ApplyToHackathon(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx         context.Context
 		hackathonID string
 		userId      string
 		input       model.HackathonApplicationInput
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    bool
-		wantErr bool
-	}{
+	tests := []Test[args, bool]{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.ApplyToHackathon(tt.args.ctx, tt.args.hackathonID, tt.args.userId, tt.args.input)
+
+			got, err := databaseRepository.ApplyToHackathon(tt.args.ctx, tt.args.hackathonID, tt.args.userId, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ApplyToHackathon() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -122,30 +96,19 @@ func TestDatabaseRepository_ApplyToHackathon(t *testing.T) {
 }
 
 func TestDatabaseRepository_CreateHackathon(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx   context.Context
 		input *model.HackathonCreateInput
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *model.Hackathon
-		wantErr bool
-	}{
+	tests := []Test[args, *model.Hackathon]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.CreateHackathon(tt.args.ctx, tt.args.input)
+
+			got, err := databaseRepository.CreateHackathon(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateHackathon() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -158,30 +121,19 @@ func TestDatabaseRepository_CreateHackathon(t *testing.T) {
 }
 
 func TestDatabaseRepository_DeleteHackathon(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx context.Context
 		id  string
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    bool
-		wantErr bool
-	}{
+	tests := []Test[args, bool]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.DeleteHackathon(tt.args.ctx, tt.args.id)
+
+			got, err := databaseRepository.DeleteHackathon(tt.args.ctx, tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeleteHackathon() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -194,31 +146,19 @@ func TestDatabaseRepository_DeleteHackathon(t *testing.T) {
 }
 
 func TestDatabaseRepository_DenyApplicant(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
 	type args struct {
 		ctx         context.Context
 		hackathonID string
 		userID      string
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    bool
-		wantErr bool
-	}{
+	tests := []Test[args, bool]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.DenyApplicant(tt.args.ctx, tt.args.hackathonID, tt.args.userID)
+
+			got, err := databaseRepository.DenyApplicant(tt.args.ctx, tt.args.hackathonID, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DenyApplicant() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -231,31 +171,19 @@ func TestDatabaseRepository_DenyApplicant(t *testing.T) {
 }
 
 func TestDatabaseRepository_GetApplication(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
 	type args struct {
 		ctx         context.Context
 		hackathonID string
 		userID      string
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *model.HackathonApplication
-		wantErr bool
-	}{
+	tests := []Test[args, *model.HackathonApplication]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.GetApplication(tt.args.ctx, tt.args.hackathonID, tt.args.userID)
+
+			got, err := databaseRepository.GetApplication(tt.args.ctx, tt.args.hackathonID, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetApplication() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -268,32 +196,21 @@ func TestDatabaseRepository_GetApplication(t *testing.T) {
 }
 
 func TestDatabaseRepository_GetApplicationWithQueryable(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx         context.Context
 		queryable   database.Queryable
 		hackathonID string
 		userID      string
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *model.HackathonApplication
-		wantErr bool
-	}{
+	tests := []Test[args, *model.HackathonApplication]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.GetApplicationWithQueryable(tt.args.ctx, tt.args.queryable, tt.args.hackathonID, tt.args.userID)
+
+			got, err := databaseRepository.GetApplicationWithQueryable(tt.args.ctx, tt.args.queryable, tt.args.hackathonID, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetApplicationWithQueryable() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -306,10 +223,6 @@ func TestDatabaseRepository_GetApplicationWithQueryable(t *testing.T) {
 }
 
 func TestDatabaseRepository_GetApplicationsByHackathon(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
 	type args struct {
 		ctx    context.Context
 		obj    *model.Hackathon
@@ -317,62 +230,44 @@ func TestDatabaseRepository_GetApplicationsByHackathon(t *testing.T) {
 		after  *string
 		status model.ApplicationStatus
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []*model.HackathonApplication
-		want1   int
-		wantErr bool
-	}{
+	type want struct {
+		applications []*model.HackathonApplication
+		total        int
+	}
+	tests := []Test[args, want]{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, got1, err := r.GetApplicationsByHackathon(tt.args.ctx, tt.args.obj, tt.args.first, tt.args.after, tt.args.status)
+			applications, total, err := databaseRepository.GetApplicationsByHackathon(tt.args.ctx, tt.args.obj, tt.args.first, tt.args.after, tt.args.status)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetApplicationsByHackathon() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetApplicationsByHackathon() got = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(applications, tt.want.applications) {
+				t.Errorf("GetApplicationsByHackathon() applications = %v, want %v", applications, tt.want)
 			}
-			if got1 != tt.want1 {
-				t.Errorf("GetApplicationsByHackathon() got1 = %v, want %v", got1, tt.want1)
+			if total != tt.want.total {
+				t.Errorf("GetApplicationsByHackathon() total = %v, want %v", total, tt.want.total)
 			}
 		})
 	}
 }
 
 func TestDatabaseRepository_GetApplicationsByUser(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx context.Context
 		obj *model.User
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []*model.HackathonApplication
-		wantErr bool
-	}{
+	tests := []Test[args, *[]model.HackathonApplication]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.GetApplicationsByUser(tt.args.ctx, tt.args.obj)
+
+			got, err := databaseRepository.GetApplicationsByUser(tt.args.ctx, tt.args.obj)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetApplicationsByUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -385,29 +280,18 @@ func TestDatabaseRepository_GetApplicationsByUser(t *testing.T) {
 }
 
 func TestDatabaseRepository_GetCurrentHackathon(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx context.Context
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *model.Hackathon
-		wantErr bool
-	}{
+	tests := []Test[args, *model.Hackathon]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.GetCurrentHackathon(tt.args.ctx)
+
+			got, err := databaseRepository.GetCurrentHackathon(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetCurrentHackathon() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -420,30 +304,19 @@ func TestDatabaseRepository_GetCurrentHackathon(t *testing.T) {
 }
 
 func TestDatabaseRepository_GetHackathon(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx context.Context
 		id  string
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *model.Hackathon
-		wantErr bool
-	}{
+	tests := []Test[args, *model.Hackathon]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.GetHackathon(tt.args.ctx, tt.args.id)
+
+			got, err := databaseRepository.GetHackathon(tt.args.ctx, tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetHackathon() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -456,30 +329,19 @@ func TestDatabaseRepository_GetHackathon(t *testing.T) {
 }
 
 func TestDatabaseRepository_GetHackathonByEvent(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx context.Context
 		obj *model.Event
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *model.Hackathon
-		wantErr bool
-	}{
+	tests := []Test[args, *model.Hackathon]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.GetHackathonByEvent(tt.args.ctx, tt.args.obj)
+
+			got, err := databaseRepository.GetHackathonByEvent(tt.args.ctx, tt.args.obj)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetHackathonByEvent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -492,31 +354,20 @@ func TestDatabaseRepository_GetHackathonByEvent(t *testing.T) {
 }
 
 func TestDatabaseRepository_GetHackathonByTermYearAndTermSemester(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx          context.Context
 		termYear     int
 		termSemester model.Semester
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *model.Hackathon
-		wantErr bool
-	}{
+	tests := []Test[args, *model.Hackathon]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.GetHackathonByTermYearAndTermSemester(tt.args.ctx, tt.args.termYear, tt.args.termSemester)
+
+			got, err := databaseRepository.GetHackathonByTermYearAndTermSemester(tt.args.ctx, tt.args.termYear, tt.args.termSemester)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetHackathonByTermYearAndTermSemester() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -529,114 +380,88 @@ func TestDatabaseRepository_GetHackathonByTermYearAndTermSemester(t *testing.T) 
 }
 
 func TestDatabaseRepository_GetHackathonEvents(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx       context.Context
 		hackathon *model.Hackathon
 		first     int
 		after     string
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []*model.Event
-		want1   int
-		wantErr bool
-	}{
+	type want struct {
+		events []*model.Event
+		total  int
+	}
+
+	tests := []Test[args, want]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, got1, err := r.GetHackathonEvents(tt.args.ctx, tt.args.hackathon, tt.args.first, tt.args.after)
+			events, total, err := databaseRepository.GetHackathonEvents(tt.args.ctx, tt.args.hackathon, tt.args.first, tt.args.after)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetHackathonEvents() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetHackathonEvents() got = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(events, tt.want.events) {
+				t.Errorf("GetHackathonEvents() sponsors = %v, want %v", events, tt.want)
 			}
-			if got1 != tt.want1 {
-				t.Errorf("GetHackathonEvents() got1 = %v, want %v", got1, tt.want1)
+			if total != tt.want.total {
+				t.Errorf("GetHackathonEvents() total = %v, want %v", total, tt.want.total)
 			}
 		})
 	}
 }
 
 func TestDatabaseRepository_GetHackathonSponsors(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx       context.Context
 		hackathon *model.Hackathon
 		first     int
 		after     string
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []*model.Sponsor
-		want1   int
-		wantErr bool
-	}{
+	type want struct {
+		sponsors []*model.Sponsor
+		total    int
+	}
+
+	tests := []Test[args, want]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, got1, err := r.GetHackathonSponsors(tt.args.ctx, tt.args.hackathon, tt.args.first, tt.args.after)
+
+			sponsors, total, err := databaseRepository.GetHackathonSponsors(tt.args.ctx, tt.args.hackathon, tt.args.first, tt.args.after)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetHackathonSponsors() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetHackathonSponsors() got = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(sponsors, tt.want.sponsors) {
+				t.Errorf("GetHackathonSponsors() sponsors = %v, want %v", sponsors, tt.want)
 			}
-			if got1 != tt.want1 {
-				t.Errorf("GetHackathonSponsors() got1 = %v, want %v", got1, tt.want1)
+			if total != tt.want.total {
+				t.Errorf("GetHackathonSponsors() total = %v, want %v", total, tt.want.total)
 			}
 		})
 	}
 }
 
 func TestDatabaseRepository_GetHackathons(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx    context.Context
 		filter *model.HackathonFilter
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []*model.Hackathon
-		wantErr bool
-	}{
+	tests := []Test[args, []*model.Hackathon]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.GetHackathons(tt.args.ctx, tt.args.filter)
+
+			got, err := databaseRepository.GetHackathons(tt.args.ctx, tt.args.filter)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetHackathons() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -649,30 +474,19 @@ func TestDatabaseRepository_GetHackathons(t *testing.T) {
 }
 
 func TestDatabaseRepository_GetHackathonsBySponsor(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx context.Context
 		obj *model.Sponsor
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []*model.Hackathon
-		wantErr bool
-	}{
+	tests := []Test[args, []*model.Hackathon]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.GetHackathonsBySponsor(tt.args.ctx, tt.args.obj)
+
+			got, err := databaseRepository.GetHackathonsBySponsor(tt.args.ctx, tt.args.obj)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetHackathonsBySponsor() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -685,10 +499,7 @@ func TestDatabaseRepository_GetHackathonsBySponsor(t *testing.T) {
 }
 
 func TestDatabaseRepository_UpdateApplicantStatus(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx         context.Context
 		queryable   database.Queryable
@@ -696,21 +507,14 @@ func TestDatabaseRepository_UpdateApplicantStatus(t *testing.T) {
 		userID      string
 		status      model.ApplicationStatus
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
+	tests := []Test[args, any]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			if err := r.UpdateApplicantStatus(tt.args.ctx, tt.args.queryable, tt.args.hackathonID, tt.args.userID, tt.args.status); (err != nil) != tt.wantErr {
+
+			if err := databaseRepository.UpdateApplicantStatus(tt.args.ctx, tt.args.queryable, tt.args.hackathonID, tt.args.userID, tt.args.status); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateApplicantStatus() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -718,32 +522,21 @@ func TestDatabaseRepository_UpdateApplicantStatus(t *testing.T) {
 }
 
 func TestDatabaseRepository_UpdateApplication(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx         context.Context
 		hackathonID string
 		userID      string
 		input       model.HackathonApplicationInput
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *model.HackathonApplication
-		wantErr bool
-	}{
+	tests := []Test[args, *model.HackathonApplication]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.UpdateApplication(tt.args.ctx, tt.args.hackathonID, tt.args.userID, tt.args.input)
+
+			got, err := databaseRepository.UpdateApplication(tt.args.ctx, tt.args.hackathonID, tt.args.userID, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UpdateApplication() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -756,31 +549,20 @@ func TestDatabaseRepository_UpdateApplication(t *testing.T) {
 }
 
 func TestDatabaseRepository_UpdateHackathon(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx   context.Context
 		id    string
 		input *model.HackathonUpdateInput
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *model.Hackathon
-		wantErr bool
-	}{
+	tests := []Test[args, *model.Hackathon]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.UpdateHackathon(tt.args.ctx, tt.args.id, tt.args.input)
+
+			got, err := databaseRepository.UpdateHackathon(tt.args.ctx, tt.args.id, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UpdateHackathon() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -793,31 +575,20 @@ func TestDatabaseRepository_UpdateHackathon(t *testing.T) {
 }
 
 func TestDatabaseRepository_getTermById(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx       context.Context
 		queryable database.Queryable
 		id        int
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *model.Term
-		wantErr bool
-	}{
+	tests := []Test[args, *model.Term]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.GetTermById(tt.args.ctx, tt.args.queryable, tt.args.id)
+
+			got, err := databaseRepository.GetTermById(tt.args.ctx, tt.args.queryable, tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getTermById() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -830,32 +601,21 @@ func TestDatabaseRepository_getTermById(t *testing.T) {
 }
 
 func TestDatabaseRepository_getTermId(t *testing.T) {
-	type fields struct {
-		DatabasePool *pgxpool.Pool
-		TermBiMap    *structure.BiMap
-	}
+
 	type args struct {
 		ctx          context.Context
 		queryable    database.Queryable
 		termYear     int
 		termSemester model.Semester
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    int
-		wantErr bool
-	}{
+	tests := []Test[args, int]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &repository.DatabaseRepository{
-				DatabasePool: tt.fields.DatabasePool,
-				TermBiMap:    tt.fields.TermBiMap,
-			}
-			got, err := r.GetTermId(tt.args.ctx, tt.args.queryable, tt.args.termYear, tt.args.termSemester)
+
+			got, err := databaseRepository.GetTermId(tt.args.ctx, tt.args.queryable, tt.args.termYear, tt.args.termSemester)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getTermId() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -871,11 +631,8 @@ func TestNewDatabaseRepository(t *testing.T) {
 	type args struct {
 		databasePool *pgxpool.Pool
 	}
-	tests := []struct {
-		name string
-		args args
-		want *repository.DatabaseRepository
-	}{
+	tests := []Test[args, *repository.DatabaseRepository]{
+		{},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
