@@ -713,7 +713,7 @@ func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID 
 			}
 		}
 		if input.Resume != nil {
-			_, err := tx.Exec(ctx, "UPDATE hackathon_applications SET resume_azure_blob_id = $3 WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID, resumeAzureBlobId)
+			_, err := tx.Exec(ctx, "UPDATE hackathon_applications SET resume_azure_blob_id = $3 WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID)
 			if err != nil {
 				return err
 			}
@@ -729,7 +729,6 @@ func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID 
 
 func (r *DatabaseRepository) GetApplicationsByHackathon(ctx context.Context, obj *model.Hackathon, first int, after *string, status model.ApplicationStatus) ([]*model.HackathonApplication, int, error) {
 	var applications []*model.HackathonApplication
-	var resumeAzureBlobId string
 	var err error
 	afterInt, err := strconv.Atoi(*after)
 	if err != nil {
