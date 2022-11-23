@@ -4,14 +4,16 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
-	"github.com/KnightHacks/knighthacks_hackathon/repository"
-	"github.com/KnightHacks/knighthacks_shared/database"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"os"
 	"reflect"
 	"testing"
+	"time"
+
+	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
+	"github.com/KnightHacks/knighthacks_hackathon/repository"
+	"github.com/KnightHacks/knighthacks_shared/database"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var integrationTest = flag.Bool("integration", false, "whether to run integration tests")
@@ -52,7 +54,7 @@ func TestDatabaseRepository_AcceptApplicant(t *testing.T) {
 		userID      string
 	}
 	tests := []Test[args, bool]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -102,7 +104,27 @@ func TestDatabaseRepository_CreateHackathon(t *testing.T) {
 		input *model.HackathonCreateInput
 	}
 	tests := []Test[args, *model.Hackathon]{
-		{},
+		{
+			name: "Create 2023 Hackathon",
+			args: args{
+				ctx: context.Background(),
+				input: &model.HackathonCreateInput{
+					Year: 2023,
+					Semester: model.SemesterFall,
+					StartDate: time.Date(2023, 10, 10, 0, 0, 0, 0, time.UTC),
+					EndDate: time.Date(2023, 10, 17, 0, 0, 0, 0, time.UTC),
+				},
+			},
+			want: &model.Hackathon{
+				Term: &model.Term{
+					Year: 2023,
+					Semester: model.SemesterFall,
+				},
+				StartDate: time.Date(2023, 10, 10, 0, 0, 0, 0, time.UTC),
+				EndDate: time.Date(2023, 10, 17, 0, 0, 0, 0, time.UTC),
+			},
+			wantErr: false,
+		},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -113,7 +135,7 @@ func TestDatabaseRepository_CreateHackathon(t *testing.T) {
 				t.Errorf("CreateHackathon() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !reflect.DeepEqual(got.Term, tt.want.Term) || !reflect.DeepEqual(got.StartDate, tt.want.StartDate) || !reflect.DeepEqual(got.EndDate, tt.want.EndDate){
 				t.Errorf("CreateHackathon() got = %v, want %v", got, tt.want)
 			}
 		})
@@ -127,7 +149,7 @@ func TestDatabaseRepository_DeleteHackathon(t *testing.T) {
 		id  string
 	}
 	tests := []Test[args, bool]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -152,7 +174,7 @@ func TestDatabaseRepository_DenyApplicant(t *testing.T) {
 		userID      string
 	}
 	tests := []Test[args, bool]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -177,7 +199,7 @@ func TestDatabaseRepository_GetApplication(t *testing.T) {
 		userID      string
 	}
 	tests := []Test[args, *model.HackathonApplication]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -204,7 +226,7 @@ func TestDatabaseRepository_GetApplicationWithQueryable(t *testing.T) {
 		userID      string
 	}
 	tests := []Test[args, *model.HackathonApplication]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -261,7 +283,7 @@ func TestDatabaseRepository_GetApplicationsByUser(t *testing.T) {
 		obj *model.User
 	}
 	tests := []Test[args, *[]model.HackathonApplication]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -285,7 +307,7 @@ func TestDatabaseRepository_GetCurrentHackathon(t *testing.T) {
 		ctx context.Context
 	}
 	tests := []Test[args, *model.Hackathon]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -310,7 +332,7 @@ func TestDatabaseRepository_GetHackathon(t *testing.T) {
 		id  string
 	}
 	tests := []Test[args, *model.Hackathon]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -335,7 +357,7 @@ func TestDatabaseRepository_GetHackathonByEvent(t *testing.T) {
 		obj *model.Event
 	}
 	tests := []Test[args, *model.Hackathon]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -361,7 +383,7 @@ func TestDatabaseRepository_GetHackathonByTermYearAndTermSemester(t *testing.T) 
 		termSemester model.Semester
 	}
 	tests := []Test[args, *model.Hackathon]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -393,7 +415,7 @@ func TestDatabaseRepository_GetHackathonEvents(t *testing.T) {
 	}
 
 	tests := []Test[args, want]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -427,7 +449,7 @@ func TestDatabaseRepository_GetHackathonSponsors(t *testing.T) {
 	}
 
 	tests := []Test[args, want]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -455,7 +477,7 @@ func TestDatabaseRepository_GetHackathons(t *testing.T) {
 		filter *model.HackathonFilter
 	}
 	tests := []Test[args, []*model.Hackathon]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -480,7 +502,7 @@ func TestDatabaseRepository_GetHackathonsBySponsor(t *testing.T) {
 		obj *model.Sponsor
 	}
 	tests := []Test[args, []*model.Hackathon]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -508,7 +530,7 @@ func TestDatabaseRepository_UpdateApplicantStatus(t *testing.T) {
 		status      model.ApplicationStatus
 	}
 	tests := []Test[args, any]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -530,7 +552,7 @@ func TestDatabaseRepository_UpdateApplication(t *testing.T) {
 		input       model.HackathonApplicationInput
 	}
 	tests := []Test[args, *model.HackathonApplication]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -556,7 +578,7 @@ func TestDatabaseRepository_UpdateHackathon(t *testing.T) {
 		input *model.HackathonUpdateInput
 	}
 	tests := []Test[args, *model.Hackathon]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -582,7 +604,7 @@ func TestDatabaseRepository_getTermById(t *testing.T) {
 		id        int
 	}
 	tests := []Test[args, *model.Term]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -609,7 +631,7 @@ func TestDatabaseRepository_getTermId(t *testing.T) {
 		termSemester model.Semester
 	}
 	tests := []Test[args, int]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
@@ -632,7 +654,7 @@ func TestNewDatabaseRepository(t *testing.T) {
 		databasePool *pgxpool.Pool
 	}
 	tests := []Test[args, *repository.DatabaseRepository]{
-		{},
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
