@@ -50,7 +50,7 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 		}
 		queryable = tx
 
-		termId, err = r.getTermId(ctx, queryable, term.Year, term.Semester)
+		termId, err = r.GetTermId(ctx, queryable, term.Year, term.Semester)
 		if err != nil {
 			if errors.Is(err, NoHackathonByTerm) {
 				err = queryable.QueryRow(
@@ -269,7 +269,7 @@ func (r *DatabaseRepository) GetHackathonByTermYearAndTermSemester(ctx context.C
 		}
 		queryable = tx
 
-		termId, err = r.getTermId(ctx, queryable, termYear, termSemester)
+		termId, err = r.GetTermId(ctx, queryable, termYear, termSemester)
 		if err != nil {
 			if errors.Is(err, NoHackathonByTerm) {
 				return nil, nil
@@ -301,7 +301,7 @@ func (r *DatabaseRepository) getHackathon(ctx context.Context, queryable databas
 	return &hackathon, nil
 }
 
-func (r *DatabaseRepository) getTermId(ctx context.Context, queryable database.Queryable, termYear int, termSemester model.Semester) (int, error) {
+func (r *DatabaseRepository) GetTermId(ctx context.Context, queryable database.Queryable, termYear int, termSemester model.Semester) (int, error) {
 	var termId *int
 	err := queryable.QueryRow(ctx, "SELECT id FROM terms WHERE year = $1 AND semester = $2", termYear, termSemester.String()).Scan(termId)
 	if err != nil {
@@ -312,7 +312,7 @@ func (r *DatabaseRepository) getTermId(ctx context.Context, queryable database.Q
 	return *termId, nil
 }
 
-func (r *DatabaseRepository) getTermById(ctx context.Context, queryable database.Queryable, id int) (*model.Term, error) {
+func (r *DatabaseRepository) GetTermById(ctx context.Context, queryable database.Queryable, id int) (*model.Term, error) {
 	var term model.Term
 	err := queryable.QueryRow(ctx, "SELECT year, semester FROM terms WHERE id = $1", id).Scan(&term.Year, &term.Semester)
 	if err != nil {
@@ -355,7 +355,7 @@ func (r *DatabaseRepository) GetCurrentHackathon(ctx context.Context) (*model.Ha
 		if ok {
 			hackathon.Term = &term
 		} else {
-			term, err := r.getTermById(ctx, tx, termId)
+			term, err := r.GetTermById(ctx, tx, termId)
 			if err != nil {
 				return err
 			}
