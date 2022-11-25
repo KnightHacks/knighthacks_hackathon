@@ -68,7 +68,7 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 		}
 		r.TermBiMap.Put(termId, term)
 	}
-	
+
 	var hackathonIdInt int
 	if err = queryable.QueryRow(
 		ctx,
@@ -79,17 +79,17 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 	).Scan(&hackathonIdInt); err != nil {
 		return nil, err
 	}
-	
+
 	if tx, ok := queryable.(pgx.Tx); ok {
 		if err = tx.Commit(ctx); err != nil {
 			return nil, err
 		}
 	}
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &model.Hackathon{
 		ID:        strconv.Itoa(hackathonIdInt),
 		Term:      &term,
@@ -710,12 +710,6 @@ func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID 
 		}
 		if input.ShareInfoWithSponsors != nil {
 			_, err := tx.Exec(ctx, "UPDATE hackathon_applications SET share_info_with_sponsors = $3 WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID, input.ShareInfoWithSponsors)
-			if err != nil {
-				return err
-			}
-		}
-		if input.Resume != nil {
-			_, err := tx.Exec(ctx, "UPDATE hackathon_applications SET resume_azure_blob_id = $3 WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID)
 			if err != nil {
 				return err
 			}
