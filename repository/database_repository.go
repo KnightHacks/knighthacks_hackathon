@@ -7,8 +7,8 @@ import (
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 	"github.com/KnightHacks/knighthacks_shared/database"
 	"github.com/KnightHacks/knighthacks_shared/structure"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"strconv"
 )
 
@@ -50,7 +50,7 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 		}
 		queryable = tx
 
-		termId, err = r.getTermId(ctx, queryable, term.Year, term.Semester)
+		termId, err = r.GetTermId(ctx, queryable, term.Year, term.Semester)
 		if err != nil {
 			if errors.Is(err, NoHackathonByTerm) {
 				err = queryable.QueryRow(
@@ -62,8 +62,9 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 				if err != nil {
 					return nil, err
 				}
+			} else {
+				return nil, err
 			}
-			return nil, err
 		}
 		r.TermBiMap.Put(termId, term)
 	}
@@ -88,6 +89,7 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 	if err != nil {
 		return nil, err
 	}
+
 	return &model.Hackathon{
 		ID:        strconv.Itoa(hackathonIdInt),
 		Term:      &term,
@@ -269,7 +271,7 @@ func (r *DatabaseRepository) GetHackathonByTermYearAndTermSemester(ctx context.C
 		}
 		queryable = tx
 
-		termId, err = r.getTermId(ctx, queryable, termYear, termSemester)
+		termId, err = r.GetTermId(ctx, queryable, termYear, termSemester)
 		if err != nil {
 			if errors.Is(err, NoHackathonByTerm) {
 				return nil, nil
@@ -301,7 +303,7 @@ func (r *DatabaseRepository) getHackathon(ctx context.Context, queryable databas
 	return &hackathon, nil
 }
 
-func (r *DatabaseRepository) getTermId(ctx context.Context, queryable database.Queryable, termYear int, termSemester model.Semester) (int, error) {
+func (r *DatabaseRepository) GetTermId(ctx context.Context, queryable database.Queryable, termYear int, termSemester model.Semester) (int, error) {
 	var termId *int
 	err := queryable.QueryRow(ctx, "SELECT id FROM terms WHERE year = $1 AND semester = $2", termYear, termSemester.String()).Scan(termId)
 	if err != nil {
@@ -312,7 +314,7 @@ func (r *DatabaseRepository) getTermId(ctx context.Context, queryable database.Q
 	return *termId, nil
 }
 
-func (r *DatabaseRepository) getTermById(ctx context.Context, queryable database.Queryable, id int) (*model.Term, error) {
+func (r *DatabaseRepository) GetTermById(ctx context.Context, queryable database.Queryable, id int) (*model.Term, error) {
 	var term model.Term
 	err := queryable.QueryRow(ctx, "SELECT year, semester FROM terms WHERE id = $1", id).Scan(&term.Year, &term.Semester)
 	if err != nil {
@@ -339,7 +341,7 @@ func (r *DatabaseRepository) DeleteHackathon(ctx context.Context, id string) (bo
 // TODO: Change name to GetNextHackathon
 func (r *DatabaseRepository) GetCurrentHackathon(ctx context.Context) (*model.Hackathon, error) {
 	var hackathon model.Hackathon
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		var termId int
 		// TODO: Check validity of using DESC
 		err := tx.QueryRow(ctx, "SELECT id, term_id, start_date, end_date FROM hackathons WHERE end_date > CURRENT_DATE ORDER BY end_date DESC LIMIT 1").Scan(
@@ -355,7 +357,7 @@ func (r *DatabaseRepository) GetCurrentHackathon(ctx context.Context) (*model.Ha
 		if ok {
 			hackathon.Term = &term
 		} else {
-			term, err := r.getTermById(ctx, tx, termId)
+			term, err := r.GetTermById(ctx, tx, termId)
 			if err != nil {
 				return err
 			}
@@ -525,7 +527,7 @@ WHERE events.id = $1`, intId)
 func (r *DatabaseRepository) GetHackathonSponsors(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.Sponsor, int, error) {
 	sponsors := make([]*model.Sponsor, 0, first)
 	var total int
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		rows, err := tx.Query(
 			ctx,
 			`SELECT sponsor_id FROM hackathon_sponsors WHERE hackathon_id = $1 AND sponsor_id > $2 ORDER BY sponsor_id DESC LIMIT $3`,
@@ -562,7 +564,7 @@ func (r *DatabaseRepository) GetHackathonSponsors(ctx context.Context, hackathon
 func (r *DatabaseRepository) GetHackathonEvents(ctx context.Context, hackathon *model.Hackathon, first int, after string) ([]*model.Event, int, error) {
 	events := make([]*model.Event, 0, first)
 	var total int
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		rows, err := tx.Query(
 			ctx,
 			`SELECT id FROM events WHERE hackathon_id = $1 AND id > $2 ORDER BY id DESC LIMIT $3`,
@@ -598,8 +600,7 @@ func (r *DatabaseRepository) GetHackathonEvents(ctx context.Context, hackathon *
 
 func (r *DatabaseRepository) GetApplicationsByUser(ctx context.Context, obj *model.User) ([]*model.HackathonApplication, error) {
 	var applications []*model.HackathonApplication
-	var resumeAzureBlobId string
-	rows, err := r.DatabasePool.Query(ctx, "SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,resume_azure_blob_id,application_status FROM hackathon_applications WHERE user_id = $1", obj.ID)
+	rows, err := r.DatabasePool.Query(ctx, "SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,application_status,user_id,hackathon_id FROM hackathon_applications WHERE user_id = $1", obj.ID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return applications, nil
@@ -609,10 +610,18 @@ func (r *DatabaseRepository) GetApplicationsByUser(ctx context.Context, obj *mod
 
 	for rows.Next() {
 		var application model.HackathonApplication
-		err = rows.Scan(&application.WhyAttend, &application.WhatDoYouWantToLearn, &application.ShareInfoWithSponsors, &resumeAzureBlobId, &application.Status)
+		err = rows.Scan(
+			&application.WhyAttend,
+			&application.WhatDoYouWantToLearn,
+			&application.ShareInfoWithSponsors,
+			&application.Status,
+			&application.UserID,
+			&application.HackathonID,
+		)
 		if err != nil {
 			return nil, err
 		}
+		application.ID = fmt.Sprintf("%s-%s", application.HackathonID, application.UserID)
 		applications = append(applications, &application)
 	}
 	return applications, nil
@@ -624,10 +633,20 @@ func (r *DatabaseRepository) GetApplication(ctx context.Context, hackathonID str
 
 func (r *DatabaseRepository) GetApplicationWithQueryable(ctx context.Context, queryable database.Queryable, hackathonID string, userID string) (*model.HackathonApplication, error) {
 	var application model.HackathonApplication
-	var resumeAzureBlobId string
-	row := queryable.QueryRow(ctx, "SELECT id, why_attend,what_do_you_want_to_learn,share_info_with_sponsors,resume_azure_blob_id,application_status FROM hackathon_applications WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID)
-
-	err := row.Scan(&application.ID, &application.WhyAttend, &application.WhatDoYouWantToLearn, &application.ShareInfoWithSponsors, &resumeAzureBlobId, &application.Status)
+	err := queryable.QueryRow(
+		ctx,
+		"SELECT id, why_attend,what_do_you_want_to_learn,share_info_with_sponsors,application_status,user_id,hackathon_id FROM hackathon_applications WHERE hackathon_id = $1 AND user_id = $2",
+		hackathonID,
+		userID,
+	).Scan(
+		&application.ID,
+		&application.WhyAttend,
+		&application.WhatDoYouWantToLearn,
+		&application.ShareInfoWithSponsors,
+		&application.Status,
+		&application.UserID,
+		&application.HackathonID,
+	)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -643,7 +662,7 @@ func (r *DatabaseRepository) GetApplicationWithQueryable(ctx context.Context, qu
 }
 
 func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID string, userId string, input model.HackathonApplicationInput) (bool, error) {
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		application, err := r.GetApplicationWithQueryable(ctx, tx, hackathonID, userId)
 		if err != nil {
 			return err
@@ -676,11 +695,7 @@ func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID s
 }
 
 func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID string, userID string, input model.HackathonApplicationInput) (*model.HackathonApplication, error) {
-	var resumeAzureBlobId string
-	if input.Resume != nil {
-		// TODO: IMPLEMENT THIS
-	}
-	err := r.DatabasePool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		if input.WhyAttend != nil {
 			_, err := tx.Exec(ctx, "UPDATE hackathon_applications SET why_attend = $3 WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID, input.WhyAttend)
 			if err != nil {
@@ -699,12 +714,6 @@ func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID 
 				return err
 			}
 		}
-		if input.Resume != nil {
-			_, err := tx.Exec(ctx, "UPDATE hackathon_applications SET resume_azure_blob_id = $3 WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID, resumeAzureBlobId)
-			if err != nil {
-				return err
-			}
-		}
 		return nil
 	})
 
@@ -716,7 +725,6 @@ func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID 
 
 func (r *DatabaseRepository) GetApplicationsByHackathon(ctx context.Context, obj *model.Hackathon, first int, after *string, status model.ApplicationStatus) ([]*model.HackathonApplication, int, error) {
 	var applications []*model.HackathonApplication
-	var resumeAzureBlobId string
 	var err error
 	afterInt, err := strconv.Atoi(*after)
 	if err != nil {
@@ -731,9 +739,9 @@ func (r *DatabaseRepository) GetApplicationsByHackathon(ctx context.Context, obj
 	var rows pgx.Rows
 
 	if after != nil {
-		rows, err = tx.Query(ctx, `SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,resume_azure_blob_id,application_status FROM hackathon_applications WHERE hackathon_id = $1 AND user_id > $2 ORDER BY user_id DESC LIMIT $3`, obj.ID, afterInt, first)
+		rows, err = tx.Query(ctx, `SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,application_status,user_id,hackathon_id FROM hackathon_applications WHERE hackathon_id = $1 AND user_id > $2 ORDER BY user_id DESC LIMIT $3`, obj.ID, afterInt, first)
 	} else {
-		rows, err = tx.Query(ctx, `SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,resume_azure_blob_id,application_status FROM hackathon_applications WHERE hackathon_id = $1 ORDER BY user_id DESC LIMIT $2`, obj.ID, first)
+		rows, err = tx.Query(ctx, `SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,application_status,user_id,hackathon_id FROM hackathon_applications WHERE hackathon_id = $1 ORDER BY user_id DESC LIMIT $2`, obj.ID, first)
 	}
 
 	if err != nil {
@@ -745,10 +753,18 @@ func (r *DatabaseRepository) GetApplicationsByHackathon(ctx context.Context, obj
 
 	for rows.Next() {
 		var application model.HackathonApplication
-		err = rows.Scan(&application.WhyAttend, &application.WhatDoYouWantToLearn, &application.ShareInfoWithSponsors, &resumeAzureBlobId, &application.Status)
+		err = rows.Scan(
+			&application.WhyAttend,
+			&application.WhatDoYouWantToLearn,
+			&application.ShareInfoWithSponsors,
+			&application.Status,
+			&application.UserID,
+			&application.HackathonID,
+		)
 		if err != nil {
 			return nil, 0, err
 		}
+		application.ID = fmt.Sprintf("%s-%s", application.HackathonID, application.UserID)
 		applications = append(applications, &application)
 	}
 	return applications, 0, nil

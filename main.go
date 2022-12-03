@@ -10,11 +10,12 @@ import (
 	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
 	"github.com/KnightHacks/knighthacks_hackathon/repository"
 	"github.com/KnightHacks/knighthacks_shared/auth"
+	"github.com/KnightHacks/knighthacks_shared/azure_blob"
 	"github.com/KnightHacks/knighthacks_shared/database"
 	"github.com/KnightHacks/knighthacks_shared/pagination"
 	"github.com/KnightHacks/knighthacks_shared/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"log"
 	"os"
@@ -40,25 +41,39 @@ func main() {
 		log.Fatalf("An error occured when trying to create an instance of Auth: %s\n", err)
 	}
 
+	var client *azure_blob.AzureBlobClient
+	serviceUrl, exists := os.LookupEnv("AZURE_SERVICE_URL")
+	if exists {
+		credential, err := azure_blob.NewClientSecretCredentialFromEnv()
+		if err != nil {
+			log.Fatalf("error occured while making azure secret credential, err = %v", err)
+		}
+		client, err = azure_blob.NewAzureBlobClient(serviceUrl, credential)
+		if err != nil {
+			log.Fatalf("error occured while making azure blob client, err = %v", err)
+		}
+	}
+
 	ginRouter := gin.Default()
 	ginRouter.Use(auth.AuthContextMiddleware(newAuth))
 	ginRouter.Use(utils.GinContextMiddleware())
 
-	ginRouter.POST("/query", graphqlHandler(newAuth, pool))
+	ginRouter.POST("/query", graphqlHandler(newAuth, pool, client))
 	ginRouter.GET("/", playgroundHandler())
 
 	log.Fatal(ginRouter.Run(":" + port))
 }
 
-func graphqlHandler(a *auth.Auth, pool *pgxpool.Pool) gin.HandlerFunc {
+func graphqlHandler(a *auth.Auth, pool *pgxpool.Pool, client *azure_blob.AzureBlobClient) gin.HandlerFunc {
 	// TODO: Sponsor doesn't have a sense of ownership, maybe we should have sponsor linked users?
 
 	hasRoleDirective := auth.HasRoleDirective{GetUserId: auth.DefaultGetUserId}
 
 	config := generated.Config{
 		Resolvers: &graph.Resolver{
-			Repository: repository.NewDatabaseRepository(pool),
-			Auth:       a,
+			Repository:      repository.NewDatabaseRepository(pool),
+			AzureBlobClient: client,
+			Auth:            a,
 		},
 		Directives: generated.DirectiveRoot{
 			HasRole:    hasRoleDirective.Direct,

@@ -5,12 +5,16 @@ package graph
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
+	"fmt"
+	"io"
 	"time"
 
 	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
 	"github.com/KnightHacks/knighthacks_shared/auth"
+	"github.com/KnightHacks/knighthacks_shared/models"
 	"github.com/KnightHacks/knighthacks_shared/pagination"
 )
 
@@ -78,6 +82,26 @@ func (r *hackathonResolver) Applications(ctx context.Context, obj *model.Hackath
 	return &connection, err
 }
 
+// Hackathon is the resolver for the hackathon field.
+func (r *hackathonApplicationResolver) Hackathon(ctx context.Context, obj *model.HackathonApplication) (*model.Hackathon, error) {
+	return r.Repository.GetHackathon(ctx, obj.ID)
+}
+
+// ResumeBase64 is the resolver for the resumeBase64 field.
+func (r *hackathonApplicationResolver) ResumeBase64(ctx context.Context, obj *model.HackathonApplication) (*string, error) {
+	if obj.ResumeBase64 != nil {
+		return obj.ResumeBase64, nil
+	}
+	resume, err := r.AzureBlobClient.DownloadResume(ctx, obj.Hackathon.ID, obj.User.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resumeBase64Encoding := base64.StdEncoding.EncodeToString(resume)
+
+	return &resumeBase64Encoding, nil
+}
+
 // CreateHackathon is the resolver for the createHackathon field.
 func (r *mutationResolver) CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error) {
 	return r.Repository.CreateHackathon(ctx, &input)
@@ -105,8 +129,45 @@ func (r *mutationResolver) DenyApplicant(ctx context.Context, hackathonID string
 
 // UpdateApplication is the resolver for the updateApplication field.
 func (r *mutationResolver) UpdateApplication(ctx context.Context, hackathonID string, userID string, input model.HackathonApplicationInput) (*model.HackathonApplication, error) {
-	// TODO: Implement auth stuff, admin only if not self
-	return r.Repository.UpdateApplication(ctx, hackathonID, userID, input)
+	claims, ok := ctx.Value("AuthorizationUserClaims").(*auth.UserClaims)
+	if !ok {
+		return nil, errors.New("unable to retrieve user claims, most likely forgot to set @hasRole directive")
+	}
+	if claims.Role != models.RoleAdmin && claims.Id != userID {
+		return nil, errors.New("unauthorized to update hackathon application that is not you")
+	}
+
+	_, err := r.Repository.GetHackathon(ctx, hackathonID)
+	if err != nil {
+		return nil, err
+	}
+
+	var bytes []byte
+	var application *model.HackathonApplication
+	if input.Resume != nil {
+		if r.AzureBlobClient != nil {
+			bytes, err = io.ReadAll(input.Resume.File)
+			if err != nil {
+				return nil, err
+			}
+			err = r.AzureBlobClient.UploadResume(ctx, hackathonID, userID, bytes)
+			if err != nil {
+				return nil, err
+			}
+		}
+		defer func() {
+			base64EncodedFile := base64.StdEncoding.EncodeToString(bytes)
+			application.ResumeBase64 = &base64EncodedFile
+		}()
+	}
+
+	application, err = r.Repository.UpdateApplication(ctx, hackathonID, userID, input)
+	if err != nil {
+		return nil, err
+	}
+	application.UserID = userID
+	application.HackathonID = hackathonID
+	return application, err
 }
 
 // ApplyToHackathon is the resolver for the applyToHackathon field.
@@ -136,8 +197,15 @@ func (r *queryResolver) GetHackathon(ctx context.Context, id string) (*model.Hac
 
 // GetApplication is the resolver for the getApplication field.
 func (r *queryResolver) GetApplication(ctx context.Context, hackathonID string, userID string) (*model.HackathonApplication, error) {
-	// TODO: Implement auth stuff, admin only if not self
-	return r.GetApplication(ctx, hackathonID, userID)
+	claims, ok := ctx.Value("AuthorizationUserClaims").(*auth.UserClaims)
+	if !ok {
+		return nil, errors.New("unable to retrieve user claims, most likely forgot to set @hasRole directive")
+	}
+	if claims.Role != models.RoleAdmin && claims.Id != userID {
+		return nil, errors.New("unauthorized to update hackathon application that is not you")
+	}
+
+	return r.Entity().FindHackathonApplicationByID(ctx, fmt.Sprintf("%s-%s", hackathonID, userID))
 }
 
 // Hackathons is the resolver for the hackathons field.
@@ -156,6 +224,11 @@ func (r *Resolver) Event() generated.EventResolver { return &eventResolver{r} }
 // Hackathon returns generated.HackathonResolver implementation.
 func (r *Resolver) Hackathon() generated.HackathonResolver { return &hackathonResolver{r} }
 
+// HackathonApplication returns generated.HackathonApplicationResolver implementation.
+func (r *Resolver) HackathonApplication() generated.HackathonApplicationResolver {
+	return &hackathonApplicationResolver{r}
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -170,7 +243,18 @@ func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
 
 type eventResolver struct{ *Resolver }
 type hackathonResolver struct{ *Resolver }
+type hackathonApplicationResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type sponsorResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *hackathonApplicationResolver) User(ctx context.Context, obj *model.HackathonApplication) (*model.User, error) {
+	panic(fmt.Errorf("not implemented"))
+}

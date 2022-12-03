@@ -44,17 +44,6 @@ type Hackathon struct {
 
 func (Hackathon) IsEntity() {}
 
-type HackathonApplication struct {
-	ID                    string            `json:"id"`
-	Status                ApplicationStatus `json:"status"`
-	User                  *User             `json:"user"`
-	Hackathon             *Hackathon        `json:"hackathon"`
-	WhyAttend             []string          `json:"whyAttend"`
-	WhatDoYouWantToLearn  []string          `json:"whatDoYouWantToLearn"`
-	ShareInfoWithSponsors bool              `json:"shareInfoWithSponsors"`
-	ResumeURL             *string           `json:"resumeUrl"`
-}
-
 type HackathonApplicationConnection struct {
 	TotalCount   int                     `json:"totalCount"`
 	PageInfo     *models.PageInfo        `json:"pageInfo"`

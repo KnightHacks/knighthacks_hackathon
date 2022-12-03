@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"strings"
 
 	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
@@ -23,6 +24,12 @@ func (r *entityResolver) FindHackathonByID(ctx context.Context, id string) (*mod
 // FindHackathonByTermYearAndTermSemester is the resolver for the findHackathonByTermYearAndTermSemester field.
 func (r *entityResolver) FindHackathonByTermYearAndTermSemester(ctx context.Context, termYear int, termSemester model.Semester) (*model.Hackathon, error) {
 	return r.Repository.GetHackathonByTermYearAndTermSemester(ctx, termYear, termSemester)
+}
+
+// FindHackathonApplicationByID is the resolver for the findHackathonApplicationByID field.
+func (r *entityResolver) FindHackathonApplicationByID(ctx context.Context, id string) (*model.HackathonApplication, error) {
+	split := strings.Split(id, "-")
+	return r.Repository.GetApplication(ctx, split[0], split[1])
 }
 
 // FindSponsorByID is the resolver for the findSponsorByID field.
