@@ -18,12 +18,10 @@ import (
 	"github.com/KnightHacks/knighthacks_shared/pagination"
 )
 
-// Hackathon is the resolver for the hackathon field.
 func (r *eventResolver) Hackathon(ctx context.Context, obj *model.Event) (*model.Hackathon, error) {
 	return r.Repository.GetHackathonByEvent(ctx, obj)
 }
 
-// Sponsors is the resolver for the sponsors field.
 func (r *hackathonResolver) Sponsors(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.SponsorsConnection, error) {
 	a, err := pagination.DecodeCursor(after)
 	if err != nil {
@@ -40,7 +38,6 @@ func (r *hackathonResolver) Sponsors(ctx context.Context, obj *model.Hackathon, 
 	return &connection, err
 }
 
-// Events is the resolver for the events field.
 func (r *hackathonResolver) Events(ctx context.Context, obj *model.Hackathon, first int, after *string) (*model.EventsConnection, error) {
 	a, err := pagination.DecodeCursor(after)
 	if err != nil {
@@ -57,7 +54,6 @@ func (r *hackathonResolver) Events(ctx context.Context, obj *model.Hackathon, fi
 	return &connection, err
 }
 
-// Status is the resolver for the status field.
 func (r *hackathonResolver) Status(ctx context.Context, obj *model.Hackathon) (model.HackathonStatus, error) {
 	now := time.Now().UTC()
 
@@ -71,7 +67,6 @@ func (r *hackathonResolver) Status(ctx context.Context, obj *model.Hackathon) (m
 	return model.HackathonStatusPresent, nil
 }
 
-// Applications is the resolver for the applications field.
 func (r *hackathonResolver) Applications(ctx context.Context, obj *model.Hackathon, first int, after *string, status model.ApplicationStatus) (*model.HackathonApplicationConnection, error) {
 	hackathons, total, err := r.Repository.GetApplicationsByHackathon(ctx, obj, first, after, status)
 
@@ -82,12 +77,10 @@ func (r *hackathonResolver) Applications(ctx context.Context, obj *model.Hackath
 	return &connection, err
 }
 
-// Hackathon is the resolver for the hackathon field.
 func (r *hackathonApplicationResolver) Hackathon(ctx context.Context, obj *model.HackathonApplication) (*model.Hackathon, error) {
 	return r.Repository.GetHackathon(ctx, obj.ID)
 }
 
-// ResumeBase64 is the resolver for the resumeBase64 field.
 func (r *hackathonApplicationResolver) ResumeBase64(ctx context.Context, obj *model.HackathonApplication) (*string, error) {
 	if obj.ResumeBase64 != nil {
 		return obj.ResumeBase64, nil
@@ -102,32 +95,26 @@ func (r *hackathonApplicationResolver) ResumeBase64(ctx context.Context, obj *mo
 	return &resumeBase64Encoding, nil
 }
 
-// CreateHackathon is the resolver for the createHackathon field.
 func (r *mutationResolver) CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error) {
 	return r.Repository.CreateHackathon(ctx, &input)
 }
 
-// UpdateHackathon is the resolver for the updateHackathon field.
 func (r *mutationResolver) UpdateHackathon(ctx context.Context, id string, input model.HackathonUpdateInput) (*model.Hackathon, error) {
 	return r.Repository.UpdateHackathon(ctx, id, &input)
 }
 
-// DeleteHackathon is the resolver for the deleteHackathon field.
 func (r *mutationResolver) DeleteHackathon(ctx context.Context, id string) (bool, error) {
 	return r.Repository.DeleteHackathon(ctx, id)
 }
 
-// AcceptApplicant is the resolver for the acceptApplicant field.
 func (r *mutationResolver) AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
 	return r.Repository.AcceptApplicant(ctx, hackathonID, userID)
 }
 
-// DenyApplicant is the resolver for the denyApplicant field.
 func (r *mutationResolver) DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
 	return r.Repository.DenyApplicant(ctx, hackathonID, userID)
 }
 
-// UpdateApplication is the resolver for the updateApplication field.
 func (r *mutationResolver) UpdateApplication(ctx context.Context, hackathonID string, userID string, input model.HackathonApplicationInput) (*model.HackathonApplication, error) {
 	claims, ok := ctx.Value("AuthorizationUserClaims").(*auth.UserClaims)
 	if !ok {
@@ -170,7 +157,6 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, hackathonID st
 	return application, err
 }
 
-// ApplyToHackathon is the resolver for the applyToHackathon field.
 func (r *mutationResolver) ApplyToHackathon(ctx context.Context, hackathonID string, input model.HackathonApplicationInput) (bool, error) {
 	claims, ok := ctx.Value("AuthorizationUserClaims").(*auth.UserClaims)
 	if !ok {
@@ -180,22 +166,18 @@ func (r *mutationResolver) ApplyToHackathon(ctx context.Context, hackathonID str
 	return r.Repository.ApplyToHackathon(ctx, hackathonID, claims.UserID, input)
 }
 
-// CurrentHackathon is the resolver for the currentHackathon field.
 func (r *queryResolver) CurrentHackathon(ctx context.Context) (*model.Hackathon, error) {
 	return r.Repository.GetCurrentHackathon(ctx)
 }
 
-// Hackathons is the resolver for the hackathons field.
 func (r *queryResolver) Hackathons(ctx context.Context, filter model.HackathonFilter) ([]*model.Hackathon, error) {
 	return r.Repository.GetHackathons(ctx, &filter)
 }
 
-// GetHackathon is the resolver for the getHackathon field.
 func (r *queryResolver) GetHackathon(ctx context.Context, id string) (*model.Hackathon, error) {
 	return r.Repository.GetHackathon(ctx, id)
 }
 
-// GetApplication is the resolver for the getApplication field.
 func (r *queryResolver) GetApplication(ctx context.Context, hackathonID string, userID string) (*model.HackathonApplication, error) {
 	claims, ok := ctx.Value("AuthorizationUserClaims").(*auth.UserClaims)
 	if !ok {
@@ -208,12 +190,10 @@ func (r *queryResolver) GetApplication(ctx context.Context, hackathonID string, 
 	return r.Entity().FindHackathonApplicationByID(ctx, fmt.Sprintf("%s-%s", hackathonID, userID))
 }
 
-// Hackathons is the resolver for the hackathons field.
 func (r *sponsorResolver) Hackathons(ctx context.Context, obj *model.Sponsor) ([]*model.Hackathon, error) {
 	return r.Repository.GetHackathonsBySponsor(ctx, obj)
 }
 
-// Applications is the resolver for the applications field.
 func (r *userResolver) Applications(ctx context.Context, obj *model.User) ([]*model.HackathonApplication, error) {
 	return r.Repository.GetApplicationsByUser(ctx, obj)
 }
