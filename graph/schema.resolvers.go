@@ -133,7 +133,7 @@ func (r *mutationResolver) UpdateApplication(ctx context.Context, hackathonID st
 	if !ok {
 		return nil, errors.New("unable to retrieve user claims, most likely forgot to set @hasRole directive")
 	}
-	if claims.Role != models.RoleAdmin && claims.Id != userID {
+	if claims.Role != models.RoleAdmin && claims.UserID != userID {
 		return nil, errors.New("unauthorized to update hackathon application that is not you")
 	}
 
@@ -201,7 +201,7 @@ func (r *queryResolver) GetApplication(ctx context.Context, hackathonID string, 
 	if !ok {
 		return nil, errors.New("unable to retrieve user claims, most likely forgot to set @hasRole directive")
 	}
-	if claims.Role != models.RoleAdmin && claims.Id != userID {
+	if claims.Role != models.RoleAdmin && claims.UserID != userID {
 		return nil, errors.New("unauthorized to update hackathon application that is not you")
 	}
 
