@@ -970,7 +970,7 @@ type Mutation {
 	{Name: "../../federation/directives.graphql", Input: `
 	scalar _Any
 	scalar _FieldSet
-
+	
 	directive @external on FIELD_DEFINITION
 	directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
 	directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
@@ -6692,12 +6692,7 @@ func (ec *executionContext) unmarshalInputHackathonApplicationInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"whyAttend", "whatDoYouWantToLearn", "shareInfoWithSponsors", "resume"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
+	for k, v := range asMap {
 		switch k {
 		case "whyAttend":
 			var err error
@@ -6744,12 +6739,7 @@ func (ec *executionContext) unmarshalInputHackathonCreateInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"year", "semester", "sponsors", "events", "startDate", "endDate"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
+	for k, v := range asMap {
 		switch k {
 		case "year":
 			var err error
@@ -6812,12 +6802,7 @@ func (ec *executionContext) unmarshalInputHackathonFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"year", "semester"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
+	for k, v := range asMap {
 		switch k {
 		case "year":
 			var err error
@@ -6848,12 +6833,7 @@ func (ec *executionContext) unmarshalInputHackathonUpdateInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"year", "semester", "addedSponsors", "removedSponsors", "addedEvents", "removedEvents"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
+	for k, v := range asMap {
 		switch k {
 		case "year":
 			var err error
