@@ -14,6 +14,8 @@ import (
 
 type Connection interface {
 	IsConnection()
+	GetTotalCount() *int
+	GetPageInfo() *models.PageInfo
 }
 
 type Event struct {
@@ -29,7 +31,9 @@ type EventsConnection struct {
 	Events     []*Event         `json:"events"`
 }
 
-func (EventsConnection) IsConnection() {}
+func (EventsConnection) IsConnection()                      {}
+func (this EventsConnection) GetTotalCount() *int           { return &this.TotalCount }
+func (this EventsConnection) GetPageInfo() *models.PageInfo { return this.PageInfo }
 
 type Hackathon struct {
 	ID           string                          `json:"id"`
@@ -50,13 +54,15 @@ type HackathonApplicationConnection struct {
 	Applications []*HackathonApplication `json:"applications"`
 }
 
-func (HackathonApplicationConnection) IsConnection() {}
+func (HackathonApplicationConnection) IsConnection()                      {}
+func (this HackathonApplicationConnection) GetTotalCount() *int           { return &this.TotalCount }
+func (this HackathonApplicationConnection) GetPageInfo() *models.PageInfo { return this.PageInfo }
 
 type HackathonApplicationInput struct {
-	WhyAttend             []string        `json:"whyAttend"`
-	WhatDoYouWantToLearn  []string        `json:"whatDoYouWantToLearn"`
-	ShareInfoWithSponsors *bool           `json:"shareInfoWithSponsors"`
-	Resume                *graphql.Upload `json:"resume"`
+	WhyAttend             []string        `json:"whyAttend,omitempty"`
+	WhatDoYouWantToLearn  []string        `json:"whatDoYouWantToLearn,omitempty"`
+	ShareInfoWithSponsors *bool           `json:"shareInfoWithSponsors,omitempty"`
+	Resume                *graphql.Upload `json:"resume,omitempty"`
 }
 
 type HackathonCreateInput struct {
@@ -70,16 +76,16 @@ type HackathonCreateInput struct {
 
 type HackathonFilter struct {
 	Year     int       `json:"year"`
-	Semester *Semester `json:"semester"`
+	Semester *Semester `json:"semester,omitempty"`
 }
 
 type HackathonUpdateInput struct {
-	Year            *int      `json:"year"`
-	Semester        *Semester `json:"semester"`
-	AddedSponsors   []string  `json:"addedSponsors"`
-	RemovedSponsors []string  `json:"removedSponsors"`
-	AddedEvents     []string  `json:"addedEvents"`
-	RemovedEvents   []string  `json:"removedEvents"`
+	Year            *int      `json:"year,omitempty"`
+	Semester        *Semester `json:"semester,omitempty"`
+	AddedSponsors   []string  `json:"addedSponsors,omitempty"`
+	RemovedSponsors []string  `json:"removedSponsors,omitempty"`
+	AddedEvents     []string  `json:"addedEvents,omitempty"`
+	RemovedEvents   []string  `json:"removedEvents,omitempty"`
 }
 
 type Sponsor struct {
@@ -95,7 +101,9 @@ type SponsorsConnection struct {
 	Sponsors   []*Sponsor       `json:"sponsors"`
 }
 
-func (SponsorsConnection) IsConnection() {}
+func (SponsorsConnection) IsConnection()                      {}
+func (this SponsorsConnection) GetTotalCount() *int           { return &this.TotalCount }
+func (this SponsorsConnection) GetPageInfo() *models.PageInfo { return this.PageInfo }
 
 type Term struct {
 	Year     int      `json:"year"`
@@ -115,7 +123,9 @@ type UsersConnection struct {
 	Users      []*User          `json:"users"`
 }
 
-func (UsersConnection) IsConnection() {}
+func (UsersConnection) IsConnection()                      {}
+func (this UsersConnection) GetTotalCount() *int           { return &this.TotalCount }
+func (this UsersConnection) GetPageInfo() *models.PageInfo { return this.PageInfo }
 
 type ApplicationStatus string
 

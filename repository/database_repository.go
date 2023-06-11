@@ -98,7 +98,7 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 	}, nil
 }
 
-func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, input *model.HackathonUpdateInput) (*model.Hackathon, error) {
+func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id int, input *model.HackathonUpdateInput) (*model.Hackathon, error) {
 	if input.Year == nil &&
 		input.Semester == nil &&
 		len(input.AddedEvents) == 0 &&
@@ -111,11 +111,7 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, inp
 	var err error
 
 	tx, err := r.DatabasePool.Begin(ctx)
-	runTx := func(tx pgx.Tx, hackathonIdString string, input *model.HackathonUpdateInput) (err error) {
-		hackathonId, err := strconv.Atoi(hackathonIdString)
-		if err != nil {
-			return err
-		}
+	runTx := func(tx pgx.Tx, hackathonId int, input *model.HackathonUpdateInput) (err error) {
 		if input.Year != nil {
 			if err = r.updateHackathonYear(ctx, tx, hackathonId, *input.Year); err != nil {
 				return err
@@ -149,7 +145,7 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, inp
 			}
 		}
 
-		hackathon, err = r.getHackathon(ctx, r.DatabasePool, "SELECT id, term_id, start_date, end_date FROM hackathons WHERE id = $1", id)
+		hackathon, err = r.getHackathon(ctx, r.DatabasePool, "SELECT id, term_id, start_date, end_date FROM hackathons WHERE id = $1", hackathonId)
 
 		if err != nil {
 			return err
@@ -207,7 +203,11 @@ func (r *DatabaseRepository) updateHackathonSemester(ctx context.Context, tx pgx
 
 func (r *DatabaseRepository) addHackathonEvents(ctx context.Context, tx pgx.Tx, hackathonId int, events []string) error {
 	for _, eventId := range events {
-		if err := r.updateHackathonEvent(ctx, tx, eventId, &hackathonId); err != nil {
+		eventIdInt, err := strconv.Atoi(eventId)
+		if err != nil {
+			return err
+		}
+		if err = r.updateHackathonEvent(ctx, tx, eventIdInt, &hackathonId); err != nil {
 			return err
 		}
 	}
@@ -216,14 +216,18 @@ func (r *DatabaseRepository) addHackathonEvents(ctx context.Context, tx pgx.Tx, 
 
 func (r *DatabaseRepository) removeHackathonEvents(ctx context.Context, tx pgx.Tx, events []string) error {
 	for _, eventId := range events {
-		if err := r.updateHackathonEvent(ctx, tx, eventId, nil); err != nil {
+		eventIdInt, err := strconv.Atoi(eventId)
+		if err != nil {
+			return err
+		}
+		if err = r.updateHackathonEvent(ctx, tx, eventIdInt, nil); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (r *DatabaseRepository) updateHackathonEvent(ctx context.Context, tx pgx.Tx, eventId string, value *int) error {
+func (r *DatabaseRepository) updateHackathonEvent(ctx context.Context, tx pgx.Tx, eventId int, value *int) error {
 	exec, err := tx.Exec(ctx, "UPDATE events SET hackathon_id = $1 WHERE id = $2", value, eventId)
 	if err != nil {
 		return err
@@ -254,7 +258,7 @@ func (r *DatabaseRepository) removeHackathonSponsors(ctx context.Context, tx pgx
 	return nil
 }
 
-func (r *DatabaseRepository) GetHackathon(ctx context.Context, id string) (*model.Hackathon, error) {
+func (r *DatabaseRepository) GetHackathon(ctx context.Context, id int) (*model.Hackathon, error) {
 	return r.getHackathon(ctx, r.DatabasePool, "SELECT id, term_id, start_date, end_date FROM hackathons WHERE id = $1", id)
 }
 
@@ -328,7 +332,7 @@ func (r *DatabaseRepository) GetTermById(ctx context.Context, queryable database
 	return nil, nil
 }
 
-func (r *DatabaseRepository) DeleteHackathon(ctx context.Context, id string) (bool, error) {
+func (r *DatabaseRepository) DeleteHackathon(ctx context.Context, id int) (bool, error) {
 	exec, err := r.DatabasePool.Exec(ctx, "DELETE FROM hackathons WHERE id = $1", id)
 	if err != nil {
 		return false, err
@@ -431,7 +435,7 @@ WHERE terms.year = $1`
 	return hackathons, err
 }
 
-func (r *DatabaseRepository) UpdateApplicantStatus(ctx context.Context, queryable database.Queryable, hackathonID string, userID string, status model.ApplicationStatus) error {
+func (r *DatabaseRepository) UpdateApplicantStatus(ctx context.Context, queryable database.Queryable, hackathonID int, userID int, status model.ApplicationStatus) error {
 	_, err := queryable.Exec(ctx, "UPDATE hackathon_applications SET application_status = $1 WHERE hackathon_id = $2 AND user_id = $3", status.String(), hackathonID, userID)
 	if err != nil {
 		return err
@@ -439,14 +443,14 @@ func (r *DatabaseRepository) UpdateApplicantStatus(ctx context.Context, queryabl
 	return nil
 }
 
-func (r *DatabaseRepository) AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
+func (r *DatabaseRepository) AcceptApplicant(ctx context.Context, hackathonID int, userID int) (bool, error) {
 	if err := r.UpdateApplicantStatus(ctx, r.DatabasePool, hackathonID, userID, model.ApplicationStatusAccepted); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func (r *DatabaseRepository) DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error) {
+func (r *DatabaseRepository) DenyApplicant(ctx context.Context, hackathonID int, userID int) (bool, error) {
 	if err := r.UpdateApplicantStatus(ctx, r.DatabasePool, hackathonID, userID, model.ApplicationStatusRejected); err != nil {
 		return false, err
 	}
@@ -629,11 +633,11 @@ func (r *DatabaseRepository) GetApplicationsByUser(ctx context.Context, obj *mod
 	return applications, nil
 }
 
-func (r *DatabaseRepository) GetApplication(ctx context.Context, hackathonID string, userID string) (*model.HackathonApplication, error) {
+func (r *DatabaseRepository) GetApplication(ctx context.Context, hackathonID int, userID int) (*model.HackathonApplication, error) {
 	return r.GetApplicationWithQueryable(ctx, r.DatabasePool, hackathonID, userID)
 }
 
-func (r *DatabaseRepository) GetApplicationWithQueryable(ctx context.Context, queryable database.Queryable, hackathonID string, userID string) (*model.HackathonApplication, error) {
+func (r *DatabaseRepository) GetApplicationWithQueryable(ctx context.Context, queryable database.Queryable, hackathonID int, userID int) (*model.HackathonApplication, error) {
 	var application model.HackathonApplication
 	err := queryable.QueryRow(
 		ctx,
@@ -663,9 +667,9 @@ func (r *DatabaseRepository) GetApplicationWithQueryable(ctx context.Context, qu
 	return &application, nil
 }
 
-func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID string, userId string, input model.HackathonApplicationInput) (bool, error) {
+func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID int, userID int, input model.HackathonApplicationInput) (bool, error) {
 	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		application, err := r.GetApplicationWithQueryable(ctx, tx, hackathonID, userId)
+		application, err := r.GetApplicationWithQueryable(ctx, tx, hackathonID, userID)
 		if err != nil {
 			return err
 		}
@@ -679,7 +683,7 @@ func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID s
 			ctx,
 			`INSERT INTO public.hackathon_applications (user_id, hackathon_id, why_attend, what_do_you_want_to_learn, share_info_with_sponsors, application_status) 
 					VALUES ($1, $2, $3, $4, $5, $6)`,
-			userId,
+			userID,
 			hackathonID,
 			input.WhyAttend,
 			input.WhatDoYouWantToLearn,
@@ -696,7 +700,7 @@ func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID s
 	return true, nil
 }
 
-func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID string, userID string, input model.HackathonApplicationInput) (*model.HackathonApplication, error) {
+func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID int, userID int, input model.HackathonApplicationInput) (*model.HackathonApplication, error) {
 	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		if input.WhyAttend != nil {
 			_, err := tx.Exec(ctx, "UPDATE hackathon_applications SET why_attend = $3 WHERE hackathon_id = $1 AND user_id = $2", hackathonID, userID, input.WhyAttend)
