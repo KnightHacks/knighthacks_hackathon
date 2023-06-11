@@ -145,7 +145,7 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id int, input 
 			}
 		}
 
-		hackathon, err = r.getHackathon(ctx, r.DatabasePool, "SELECT id, term_id, start_date, end_date FROM hackathons WHERE id = $1", hackathonId)
+		hackathon, err = r.getHackathon(ctx, tx, "SELECT id, term_id, start_date, end_date FROM hackathons WHERE id = $1", hackathonId)
 
 		if err != nil {
 			return err
