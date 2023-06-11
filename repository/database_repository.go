@@ -148,6 +148,7 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, inp
 				return err
 			}
 		}
+
 		hackathon, err = r.getHackathon(ctx, r.DatabasePool, "SELECT id, term_id, start_date, end_date FROM hackathons WHERE id = $1", id)
 
 		if err != nil {
@@ -158,10 +159,11 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id string, inp
 
 	err = runTx(tx, id, input)
 	if err != nil {
-		err = tx.Rollback(ctx)
-		if err != nil {
-			return nil, err
+		err2 := tx.Rollback(ctx)
+		if err2 != nil {
+			return nil, errors.Join(err, err2)
 		}
+		return nil, err
 	}
 
 	return hackathon, nil
