@@ -12,6 +12,10 @@ github.com/AzureAD/microsoft-authentication-library-for-go v1.0.0 h1:OBhqkivkhkM
 github.com/AzureAD/microsoft-authentication-library-for-go v1.0.0/go.mod h1:kgDmCTgBzIEPFElEF+FK0SdjAor06dRq2Go927dnQ6o=
 github.com/KnightHacks/knighthacks_shared v0.0.0-20221123184357-0f1e8db71c48 h1:wOt+RSnfUgSE8YdASFpIgOMNnCChzHa6Iz/3iyN8NUo=
 github.com/KnightHacks/knighthacks_shared v0.0.0-20221123184357-0f1e8db71c48/go.mod h1:CoTeIUwu66fDN5b6Ib6aioECv5Cib7KVPEdrY4jL0g4=
+github.com/KnightHacks/knighthacks_shared v0.0.0-20230611214249-eb0b984aa432 h1:apwDgbnhNs2c4dEVStdxlMKd9tmHuEgJGH9I37/sS7I=
+github.com/KnightHacks/knighthacks_shared v0.0.0-20230611214249-eb0b984aa432/go.mod h1:CoTeIUwu66fDN5b6Ib6aioECv5Cib7KVPEdrY4jL0g4=
+github.com/KnightHacks/knighthacks_shared v0.0.0-20230612000807-23a6bcca6f99 h1:d+RAywCoQJIXjPXwRpSi/91kEyEx8II0tnTNW4KwFiI=
+github.com/KnightHacks/knighthacks_shared v0.0.0-20230612000807-23a6bcca6f99/go.mod h1:CoTeIUwu66fDN5b6Ib6aioECv5Cib7KVPEdrY4jL0g4=
 github.com/agnivade/levenshtein v1.1.1 h1:QY8M92nrzkmr798gCo3kmMyqXFzdQVpxLlGPRBij0P8=
 github.com/agnivade/levenshtein v1.1.1/go.mod h1:veldBMzWxcCG2ZvUTKD2kJNRdCk5hVbJomOvKkmgYbo=
 github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883 h1:bvNMNQO63//z+xNgfBlViaCIJKLlCJ6/fmUseuG0wVQ=
