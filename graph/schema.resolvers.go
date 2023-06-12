@@ -37,7 +37,7 @@ func (r *hackathonResolver) Sponsors(ctx context.Context, obj *model.Hackathon, 
 	}
 	connection := model.SponsorsConnection{Sponsors: sponsors,
 		TotalCount: total,
-		PageInfo:   pagination.GetPageInfo(sponsors[0].ID, sponsors[len(sponsors)-1].ID),
+		PageInfo:   pagination.GetPageInfo(sponsors),
 	}
 	return &connection, err
 }
@@ -54,7 +54,7 @@ func (r *hackathonResolver) Events(ctx context.Context, obj *model.Hackathon, fi
 	}
 	connection := model.EventsConnection{Events: events,
 		TotalCount: total,
-		PageInfo:   pagination.GetPageInfo(events[0].ID, events[len(events)-1].ID),
+		PageInfo:   pagination.GetPageInfo(events),
 	}
 	return &connection, err
 }
@@ -79,7 +79,7 @@ func (r *hackathonResolver) Applications(ctx context.Context, obj *model.Hackath
 
 	connection := model.HackathonApplicationConnection{Applications: hackathons,
 		TotalCount: total,
-		PageInfo:   pagination.GetPageInfo(hackathons[0].ID, hackathons[len(hackathons)-1].ID),
+		PageInfo:   pagination.GetPageInfo(hackathons),
 	}
 	return &connection, err
 }
