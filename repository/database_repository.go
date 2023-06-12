@@ -108,23 +108,22 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id int, input 
 		return nil, errors.New("empty input field")
 	}
 	var hackathon *model.Hackathon
-	var err error
 
-	tx, err := r.DatabasePool.Begin(ctx)
-	runTx := func(tx pgx.Tx, hackathonId int, input *model.HackathonUpdateInput) (err error) {
+	err := pgx.BeginFunc(ctx, r.DatabasePool, func(tx pgx.Tx) error {
+		var err error
 		if input.Year != nil {
-			if err = r.updateHackathonYear(ctx, tx, hackathonId, *input.Year); err != nil {
+			if err = r.updateHackathonYear(ctx, tx, id, *input.Year); err != nil {
 				return err
 			}
 		}
 		if input.Semester != nil {
-			if err = r.updateHackathonSemester(ctx, tx, hackathonId, *input.Semester); err != nil {
+			if err = r.updateHackathonSemester(ctx, tx, id, *input.Semester); err != nil {
 				return err
 			}
 		}
 
 		if len(input.AddedEvents) > 0 {
-			if err = r.addHackathonEvents(ctx, tx, hackathonId, input.AddedEvents); err != nil {
+			if err = r.addHackathonEvents(ctx, tx, id, input.AddedEvents); err != nil {
 				return err
 			}
 		}
@@ -135,20 +134,19 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id int, input 
 		}
 
 		if len(input.AddedSponsors) > 0 {
-			if err = r.addHackathonSponsors(ctx, tx, hackathonId, input.AddedSponsors); err != nil {
+			if err = r.addHackathonSponsors(ctx, tx, id, input.AddedSponsors); err != nil {
 				return err
 			}
 		}
 		if len(input.RemovedSponsors) > 0 {
-			if err = r.removeHackathonSponsors(ctx, tx, hackathonId, input.RemovedSponsors); err != nil {
+			if err = r.removeHackathonSponsors(ctx, tx, id, input.RemovedSponsors); err != nil {
 				return err
 			}
 		}
 
-		hackathon = &model.Hackathon{Term: &model.Term{}}
-		var hackathonIdInt int
+		hackathon = &model.Hackathon{ID: strconv.Itoa(id), Term: &model.Term{}}
 
-		err = tx.QueryRow(ctx, `SELECT hackathons.id, 
+		err = tx.QueryRow(ctx, `SELECT 
        hackathons.start_date,
        hackathons.end_date,
        terms.semester,
@@ -156,27 +154,15 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id int, input 
 FROM hackathons
          INNER JOIN terms ON hackathons.term_id = terms.id
 WHERE hackathons.id = $1`, id).Scan(
-			&hackathonIdInt,
 			&hackathon.StartDate,
 			&hackathon.EndDate,
 			&hackathon.Term.Semester,
 			&hackathon.Term.Year,
 		)
+		return err
+	})
 
-		if err != nil {
-			return err
-		}
-
-		hackathon.ID = strconv.Itoa(hackathonIdInt)
-		return nil
-	}
-
-	err = runTx(tx, id, input)
 	if err != nil {
-		err2 := tx.Rollback(ctx)
-		if err2 != nil {
-			return nil, errors.Join(err, err2)
-		}
 		return nil, err
 	}
 
