@@ -145,11 +145,29 @@ func (r *DatabaseRepository) UpdateHackathon(ctx context.Context, id int, input 
 			}
 		}
 
-		hackathon, err = r.getHackathon(ctx, tx, "SELECT id, term_id, start_date, end_date FROM hackathons WHERE id = $1", hackathonId)
+		hackathon = &model.Hackathon{Term: &model.Term{}}
+		var hackathonIdInt int
+
+		err = tx.QueryRow(ctx, `SELECT hackathons.id, 
+       hackathons.start_date,
+       hackathons.end_date,
+       terms.semester,
+       terms.year
+FROM hackathons
+         INNER JOIN terms ON hackathons.term_id = terms.id
+WHERE hackathons.id = $1`, id).Scan(
+			&hackathonIdInt,
+			&hackathon.StartDate,
+			&hackathon.EndDate,
+			&hackathon.Term.Semester,
+			&hackathon.Term.Year,
+		)
 
 		if err != nil {
 			return err
 		}
+
+		hackathon.ID = strconv.Itoa(hackathonIdInt)
 		return nil
 	}
 
@@ -259,7 +277,31 @@ func (r *DatabaseRepository) removeHackathonSponsors(ctx context.Context, tx pgx
 }
 
 func (r *DatabaseRepository) GetHackathon(ctx context.Context, id int) (*model.Hackathon, error) {
-	return r.getHackathon(ctx, r.DatabasePool, "SELECT id, term_id, start_date, end_date FROM hackathons WHERE id = $1", id)
+	hackathon := model.Hackathon{Term: &model.Term{}}
+	var hackathonIdInt int
+
+	err := r.DatabasePool.QueryRow(ctx, `SELECT hackathons.id,
+       hackathons.start_date,
+       hackathons.end_date,
+       terms.semester,
+       terms.year
+FROM hackathons
+         INNER JOIN terms ON hackathons.term_id = terms.id
+WHERE hackathons.id = $1`, id).Scan(
+		&hackathonIdInt,
+		&hackathon.StartDate,
+		&hackathon.EndDate,
+		&hackathon.Term.Semester,
+		&hackathon.Term.Year,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	hackathon.ID = strconv.Itoa(hackathonIdInt)
+
+	return &hackathon, nil
 }
 
 func (r *DatabaseRepository) GetHackathonByTermYearAndTermSemester(ctx context.Context, termYear int, termSemester model.Semester) (*model.Hackathon, error) {
@@ -288,24 +330,23 @@ func (r *DatabaseRepository) GetHackathonByTermYearAndTermSemester(ctx context.C
 		defer tx.Commit(ctx).Error()
 	}
 
-	hackathon, err := r.getHackathon(ctx, queryable, "SELECT id, start_date, end_date FROM hackathons WHERE term_id = $1", termId)
-	if err != nil {
-		return nil, err
-	}
-	hackathon.Term = &term
-	return hackathon, nil
-}
-
-func (r *DatabaseRepository) getHackathon(ctx context.Context, queryable database.Queryable, sql string, args ...any) (*model.Hackathon, error) {
 	var hackathon model.Hackathon
-	err := queryable.QueryRow(ctx, sql, args).Scan(
-		&hackathon.ID,
+	var hackathonIdInt int
+
+	err := queryable.QueryRow(ctx, "SELECT id, start_date, end_date FROM hackathons WHERE term_id = $1", termId).Scan(
+		&hackathonIdInt,
 		&hackathon.StartDate,
 		&hackathon.EndDate,
 	)
+
 	if err != nil {
 		return nil, err
 	}
+
+	hackathon.Term = &term
+
+	hackathon.ID = strconv.Itoa(hackathonIdInt)
+
 	return &hackathon, nil
 }
 
@@ -732,10 +773,6 @@ func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID 
 func (r *DatabaseRepository) GetApplicationsByHackathon(ctx context.Context, obj *model.Hackathon, first int, after *string, status model.ApplicationStatus) ([]*model.HackathonApplication, int, error) {
 	var applications []*model.HackathonApplication
 	var err error
-	afterInt, err := strconv.Atoi(*after)
-	if err != nil {
-		return nil, 0, err
-	}
 
 	tx, err := r.DatabasePool.Begin(ctx)
 	if err != nil {
@@ -745,9 +782,26 @@ func (r *DatabaseRepository) GetApplicationsByHackathon(ctx context.Context, obj
 	var rows pgx.Rows
 
 	if after != nil {
-		rows, err = tx.Query(ctx, `SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,application_status,user_id,hackathon_id FROM hackathon_applications WHERE hackathon_id = $1 AND user_id > $2 ORDER BY user_id DESC LIMIT $3`, obj.ID, afterInt, first)
+		afterInt, err := strconv.Atoi(*after)
+		if err != nil {
+			return nil, 0, err
+		}
+		rows, err = tx.Query(
+			ctx,
+			`SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,application_status,user_id,hackathon_id FROM hackathon_applications WHERE hackathon_id = $1 AND user_id > $2 AND application_status = $3 ORDER BY user_id DESC LIMIT $4`,
+			obj.ID,
+			afterInt,
+			status.String(),
+			first,
+		)
 	} else {
-		rows, err = tx.Query(ctx, `SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,application_status,user_id,hackathon_id FROM hackathon_applications WHERE hackathon_id = $1 ORDER BY user_id DESC LIMIT $2`, obj.ID, first)
+		rows, err = tx.Query(
+			ctx,
+			`SELECT why_attend,what_do_you_want_to_learn,share_info_with_sponsors,application_status,user_id,hackathon_id FROM hackathon_applications WHERE hackathon_id = $1 AND application_status = $2 ORDER BY user_id DESC LIMIT $3`,
+			obj.ID,
+			status.String(),
+			first,
+		)
 	}
 
 	if err != nil {
