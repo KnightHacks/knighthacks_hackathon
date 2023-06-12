@@ -16,7 +16,7 @@ import (
 // Implements the Repository interface's functions
 type DatabaseRepository struct {
 	DatabasePool *pgxpool.Pool
-	TermBiMap    *structure.BiMap
+	TermBiMap    *structure.BiMap[int, *model.Term]
 }
 
 var (
@@ -28,7 +28,7 @@ var (
 func NewDatabaseRepository(databasePool *pgxpool.Pool) *DatabaseRepository {
 	return &DatabaseRepository{
 		DatabasePool: databasePool,
-		TermBiMap:    structure.NewBiMap(),
+		TermBiMap:    structure.NewBiMap[int, *model.Term](),
 	}
 }
 
@@ -66,7 +66,7 @@ func (r *DatabaseRepository) CreateHackathon(ctx context.Context, input *model.H
 				return nil, err
 			}
 		}
-		r.TermBiMap.Put(termId, term)
+		r.TermBiMap.Put(termId, &term)
 	}
 
 	var hackathonIdInt int
@@ -312,7 +312,7 @@ func (r *DatabaseRepository) GetHackathonByTermYearAndTermSemester(ctx context.C
 			}
 			return nil, err
 		}
-		r.TermBiMap.Put(termId, term)
+		r.TermBiMap.Put(termId, &term)
 		defer tx.Commit(ctx).Error()
 	}
 
