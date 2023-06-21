@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/KnightHacks/knighthacks_hackathon/graph/generated"
@@ -86,7 +87,7 @@ func (r *hackathonResolver) Applications(ctx context.Context, obj *model.Hackath
 
 // Hackathon is the resolver for the hackathon field.
 func (r *hackathonApplicationResolver) Hackathon(ctx context.Context, obj *model.HackathonApplication) (*model.Hackathon, error) {
-	hackathonIdInt, err := strconv.Atoi(obj.ID)
+	hackathonIdInt, err := strconv.Atoi(strings.Split(obj.ID, "-")[0])
 	if err != nil {
 		return nil, err
 	}
