@@ -67,7 +67,7 @@ func main() {
 func graphqlHandler(a *auth.Auth, pool *pgxpool.Pool, client *azure_blob.AzureBlobClient) gin.HandlerFunc {
 	// TODO: Sponsor doesn't have a sense of ownership, maybe we should have sponsor linked users?
 
-	hasRoleDirective := auth.HasRoleDirective{GetUserId: auth.DefaultGetUserId}
+	hasRoleDirective := auth.HasRoleDirective{GetUserId: auth.DefaultGetUserId, Queryable: pool}
 
 	config := generated.Config{
 		Resolvers: &graph.Resolver{
