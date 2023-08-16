@@ -10,6 +10,8 @@ github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0 h1:u/LLAOFgsMv7HmNL4
 github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0/go.mod h1:2e8rMJtl2+2j+HXbTBwnyGpm5Nou7KhvSfxOq8JpTag=
 github.com/AzureAD/microsoft-authentication-library-for-go v1.0.0 h1:OBhqkivkhkMqLPymWEppkm7vgPQY2XsHoEkaMQ0AdZY=
 github.com/AzureAD/microsoft-authentication-library-for-go v1.0.0/go.mod h1:kgDmCTgBzIEPFElEF+FK0SdjAor06dRq2Go927dnQ6o=
+github.com/KnightHacks/knighthacks_shared v0.0.0-20221219025346-316c1bc4391e h1:RxHHItsOM6AKcTlrHffnIeAGajFb+Q3O3zUcsog7Ozw=
+github.com/KnightHacks/knighthacks_shared v0.0.0-20221219025346-316c1bc4391e/go.mod h1:+7QGGlLD1/Z4JSvY5zdvEaPqF3dW+CYgEVj6iKojLoE=
 github.com/KnightHacks/knighthacks_shared v0.0.0-20230612003310-4129feb4c665 h1:KFDceuVaYCv5s5NNnzDbky3Whu3CcHmloL7nGT/AVEM=
 github.com/KnightHacks/knighthacks_shared v0.0.0-20230612003310-4129feb4c665/go.mod h1:n+KoIc/WSWR5bhX2gDqyiwmNA6V7z2Gxs8teq7C/eBQ=
 github.com/KnightHacks/knighthacks_shared v0.0.0-20230612011004-86d81f7e8fb5 h1:V0yWEm/TUEIUOVN8SaKyv5yr9S4uVIMBAYt72dnd1b4=
