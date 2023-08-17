@@ -10,7 +10,7 @@ type HackathonApplication struct {
 	WhyAttend             []string          `json:"whyAttend"`
 	WhatDoYouWantToLearn  []string          `json:"whatDoYouWantToLearn"`
 	ShareInfoWithSponsors bool              `json:"shareInfoWithSponsors"`
-	ResumeBase64          *string           `json:"resumeBase64"`
+	ResumeURL             string            `json:"resumeURL"`
 }
 
 func (HackathonApplication) IsEntity() {}

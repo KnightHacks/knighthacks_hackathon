@@ -28,7 +28,7 @@ type Repository interface {
 
 	GetApplicationsByUser(ctx context.Context, obj *model.User) ([]*model.HackathonApplication, error)
 	GetApplication(ctx context.Context, hackathonid int, userid int) (*model.HackathonApplication, error)
-	ApplyToHackathon(ctx context.Context, hackathonid int, userid int, input model.HackathonApplicationInput) (bool, error)
+	ApplyToHackathon(ctx context.Context, hackathonid int, userid int, input model.HackathonApplicationInput) error
 	UpdateApplication(ctx context.Context, hackathonid int, userid int, input model.HackathonApplicationInput) (*model.HackathonApplication, error)
 	GetApplicationsByHackathon(ctx context.Context, obj *model.Hackathon, first int, after *string, status model.ApplicationStatus) ([]*model.HackathonApplication, int, error)
 }

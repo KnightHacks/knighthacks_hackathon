@@ -42,13 +42,13 @@ func main() {
 	}
 
 	var client *azure_blob.AzureBlobClient
-	serviceUrl, exists := os.LookupEnv("AZURE_SERVICE_URL")
+	_, exists := os.LookupEnv("AZURE_ACCOUNT_NAME")
 	if exists {
-		credential, err := azure_blob.NewClientSecretCredentialFromEnv()
+		credential, err := azure_blob.NewSharedCredentialFromEnv()
 		if err != nil {
-			log.Fatalf("error occured while making azure secret credential, err = %v", err)
+			log.Fatalf("error occured while making azure shared credential, err = %v", err)
 		}
-		client, err = azure_blob.NewAzureBlobClient(serviceUrl, credential)
+		client, err = azure_blob.NewAzureBlobClient(credential)
 		if err != nil {
 			log.Fatalf("error occured while making azure blob client, err = %v", err)
 		}
@@ -71,7 +71,7 @@ func graphqlHandler(a *auth.Auth, pool *pgxpool.Pool, client *azure_blob.AzureBl
 
 	config := generated.Config{
 		Resolvers: &graph.Resolver{
-			Repository:      repository.NewDatabaseRepository(pool),
+			Repository:      repository.NewDatabaseRepository(pool, client),
 			AzureBlobClient: client,
 			Auth:            a,
 		},

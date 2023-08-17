@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/KnightHacks/knighthacks_shared/models"
 )
 
@@ -59,10 +58,9 @@ func (this HackathonApplicationConnection) GetTotalCount() *int           { retu
 func (this HackathonApplicationConnection) GetPageInfo() *models.PageInfo { return this.PageInfo }
 
 type HackathonApplicationInput struct {
-	WhyAttend             []string        `json:"whyAttend,omitempty"`
-	WhatDoYouWantToLearn  []string        `json:"whatDoYouWantToLearn,omitempty"`
-	ShareInfoWithSponsors *bool           `json:"shareInfoWithSponsors,omitempty"`
-	Resume                *graphql.Upload `json:"resume,omitempty"`
+	WhyAttend             []string `json:"whyAttend,omitempty"`
+	WhatDoYouWantToLearn  []string `json:"whatDoYouWantToLearn,omitempty"`
+	ShareInfoWithSponsors *bool    `json:"shareInfoWithSponsors,omitempty"`
 }
 
 type HackathonCreateInput struct {

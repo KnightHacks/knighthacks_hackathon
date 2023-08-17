@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/KnightHacks/knighthacks_hackathon/graph/model"
+	"github.com/KnightHacks/knighthacks_shared/azure_blob"
 	"github.com/KnightHacks/knighthacks_shared/database"
 	"github.com/KnightHacks/knighthacks_shared/structure"
 	"github.com/jackc/pgx/v5"
@@ -15,8 +16,9 @@ import (
 // DatabaseRepository
 // Implements the Repository interface's functions
 type DatabaseRepository struct {
-	DatabasePool *pgxpool.Pool
-	TermBiMap    *structure.BiMap[int, *model.Term]
+	DatabasePool    *pgxpool.Pool
+	TermBiMap       *structure.BiMap[int, *model.Term]
+	AzureBlobClient *azure_blob.AzureBlobClient
 }
 
 var (
@@ -25,10 +27,11 @@ var (
 	HackathonNotFound        = errors.New("hackathon not found")
 )
 
-func NewDatabaseRepository(databasePool *pgxpool.Pool) *DatabaseRepository {
+func NewDatabaseRepository(databasePool *pgxpool.Pool, azureBlobClient *azure_blob.AzureBlobClient) *DatabaseRepository {
 	return &DatabaseRepository{
-		DatabasePool: databasePool,
-		TermBiMap:    structure.NewBiMap[int, *model.Term](),
+		DatabasePool:    databasePool,
+		TermBiMap:       structure.NewBiMap[int, *model.Term](),
+		AzureBlobClient: azureBlobClient,
 	}
 }
 
@@ -694,7 +697,7 @@ func (r *DatabaseRepository) GetApplicationWithQueryable(ctx context.Context, qu
 	return &application, nil
 }
 
-func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID int, userID int, input model.HackathonApplicationInput) (bool, error) {
+func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID int, userID int, input model.HackathonApplicationInput) error {
 	err := pgx.BeginTxFunc(ctx, r.DatabasePool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		application, err := r.GetApplicationWithQueryable(ctx, tx, hackathonID, userID)
 		if err != nil {
@@ -703,8 +706,6 @@ func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID i
 		if application != nil {
 			return ApplicationAlreadyExists
 		}
-
-		// TODO: IMPLEMENT AZURE BLOB UPLOAD
 
 		_, err = tx.Exec(
 			ctx,
@@ -722,9 +723,9 @@ func (r *DatabaseRepository) ApplyToHackathon(ctx context.Context, hackathonID i
 		return nil
 	})
 	if err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }
 
 func (r *DatabaseRepository) UpdateApplication(ctx context.Context, hackathonID int, userID int, input model.HackathonApplicationInput) (*model.HackathonApplication, error) {
@@ -811,6 +812,7 @@ func (r *DatabaseRepository) GetApplicationsByHackathon(ctx context.Context, obj
 			return nil, 0, err
 		}
 		application.ID = fmt.Sprintf("%s-%s", application.HackathonID, application.UserID)
+		application.ResumeURL = r.AzureBlobClient.GetResumeURL(application.HackathonID, application.UserID)
 		applications = append(applications, &application)
 	}
 	return applications, 0, nil

@@ -43,7 +43,7 @@ func TestMain(t *testing.M) {
 		log.Fatalf("unable to connect to database err=%v\n", err)
 	}
 
-	databaseRepository = repository.NewDatabaseRepository(pool)
+	databaseRepository = repository.NewDatabaseRepository(pool, nil)
 	os.Exit(t.Run())
 }
 
@@ -85,14 +85,12 @@ func TestDatabaseRepository_ApplyToHackathon(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := databaseRepository.ApplyToHackathon(tt.args.ctx, tt.args.hackathonID, tt.args.userId, tt.args.input)
+			err := databaseRepository.ApplyToHackathon(tt.args.ctx, tt.args.hackathonID, tt.args.userId, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ApplyToHackathon() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("ApplyToHackathon() got = %v, want %v", got, tt.want)
-			}
+
 		})
 	}
 }
@@ -109,19 +107,19 @@ func TestDatabaseRepository_CreateHackathon(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				input: &model.HackathonCreateInput{
-					Year: 2023,
-					Semester: model.SemesterFall,
+					Year:      2023,
+					Semester:  model.SemesterFall,
 					StartDate: time.Date(2023, 10, 10, 0, 0, 0, 0, time.UTC),
-					EndDate: time.Date(2023, 10, 17, 0, 0, 0, 0, time.UTC),
+					EndDate:   time.Date(2023, 10, 17, 0, 0, 0, 0, time.UTC),
 				},
 			},
 			want: &model.Hackathon{
 				Term: &model.Term{
-					Year: 2023,
+					Year:     2023,
 					Semester: model.SemesterFall,
 				},
 				StartDate: time.Date(2023, 10, 10, 0, 0, 0, 0, time.UTC),
-				EndDate: time.Date(2023, 10, 17, 0, 0, 0, 0, time.UTC),
+				EndDate:   time.Date(2023, 10, 17, 0, 0, 0, 0, time.UTC),
 			},
 			wantErr: false,
 		},
@@ -135,7 +133,7 @@ func TestDatabaseRepository_CreateHackathon(t *testing.T) {
 				t.Errorf("CreateHackathon() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got.Term, tt.want.Term) || !reflect.DeepEqual(got.StartDate, tt.want.StartDate) || !reflect.DeepEqual(got.EndDate, tt.want.EndDate){
+			if !reflect.DeepEqual(got.Term, tt.want.Term) || !reflect.DeepEqual(got.StartDate, tt.want.StartDate) || !reflect.DeepEqual(got.EndDate, tt.want.EndDate) {
 				t.Errorf("CreateHackathon() got = %v, want %v", got, tt.want)
 			}
 		})

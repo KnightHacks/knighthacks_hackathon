@@ -89,7 +89,7 @@ type ComplexityRoot struct {
 	HackathonApplication struct {
 		Hackathon             func(childComplexity int) int
 		ID                    func(childComplexity int) int
-		ResumeBase64          func(childComplexity int) int
+		ResumeURL             func(childComplexity int) int
 		ShareInfoWithSponsors func(childComplexity int) int
 		Status                func(childComplexity int) int
 		WhatDoYouWantToLearn  func(childComplexity int) int
@@ -177,8 +177,6 @@ type HackathonResolver interface {
 }
 type HackathonApplicationResolver interface {
 	Hackathon(ctx context.Context, obj *model.HackathonApplication) (*model.Hackathon, error)
-
-	ResumeBase64(ctx context.Context, obj *model.HackathonApplication) (*string, error)
 }
 type MutationResolver interface {
 	CreateHackathon(ctx context.Context, input model.HackathonCreateInput) (*model.Hackathon, error)
@@ -187,7 +185,7 @@ type MutationResolver interface {
 	AcceptApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
 	DenyApplicant(ctx context.Context, hackathonID string, userID string) (bool, error)
 	UpdateApplication(ctx context.Context, hackathonID string, userID string, input model.HackathonApplicationInput) (*model.HackathonApplication, error)
-	ApplyToHackathon(ctx context.Context, hackathonID string, input model.HackathonApplicationInput) (bool, error)
+	ApplyToHackathon(ctx context.Context, hackathonID string, input model.HackathonApplicationInput) (string, error)
 }
 type QueryResolver interface {
 	CurrentHackathon(ctx context.Context) (*model.Hackathon, error)
@@ -409,12 +407,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HackathonApplication.ID(childComplexity), true
 
-	case "HackathonApplication.resumeBase64":
-		if e.complexity.HackathonApplication.ResumeBase64 == nil {
+	case "HackathonApplication.resumeURL":
+		if e.complexity.HackathonApplication.ResumeURL == nil {
 			break
 		}
 
-		return e.complexity.HackathonApplication.ResumeBase64(childComplexity), true
+		return e.complexity.HackathonApplication.ResumeURL(childComplexity), true
 
 	case "HackathonApplication.shareInfoWithSponsors":
 		if e.complexity.HackathonApplication.ShareInfoWithSponsors == nil {
@@ -968,7 +966,6 @@ input HackathonApplicationInput {
     whyAttend: [String!]
     whatDoYouWantToLearn: [String!]
     shareInfoWithSponsors: Boolean
-    resume: Upload
 }
 
 enum ApplicationStatus {
@@ -982,7 +979,7 @@ type HackathonApplication @key(fields: "id") {
     whyAttend: [String!]!
     whatDoYouWantToLearn: [String!]!
     shareInfoWithSponsors: Boolean!
-    resumeBase64: String @goField(forceResolver: true)
+    resumeURL: String!
 }
 
 type Query {
@@ -1001,7 +998,7 @@ type Mutation {
     denyApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
 
     updateApplication(hackathonId: ID!, userId: ID!, input: HackathonApplicationInput!): HackathonApplication @hasRole(role: NORMAL) # will manually check if userId = the logged in user
-    applyToHackathon(hackathonId: ID!, input: HackathonApplicationInput!): Boolean! @hasRole(role: NORMAL)
+    applyToHackathon(hackathonId: ID!, input: HackathonApplicationInput!): String! @hasRole(role: NORMAL)
 }
 `, BuiltIn: false},
 	{Name: "../../federation/directives.graphql", Input: `
@@ -1591,7 +1588,7 @@ func (ec *executionContext) fieldContext_Entity_findEventByID(ctx context.Contex
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Entity_findEventByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1664,7 +1661,7 @@ func (ec *executionContext) fieldContext_Entity_findHackathonByID(ctx context.Co
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Entity_findHackathonByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1737,7 +1734,7 @@ func (ec *executionContext) fieldContext_Entity_findHackathonByTermYearAndTermSe
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Entity_findHackathonByTermYearAndTermSemester_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1793,8 +1790,8 @@ func (ec *executionContext) fieldContext_Entity_findHackathonApplicationByID(ctx
 				return ec.fieldContext_HackathonApplication_whatDoYouWantToLearn(ctx, field)
 			case "shareInfoWithSponsors":
 				return ec.fieldContext_HackathonApplication_shareInfoWithSponsors(ctx, field)
-			case "resumeBase64":
-				return ec.fieldContext_HackathonApplication_resumeBase64(ctx, field)
+			case "resumeURL":
+				return ec.fieldContext_HackathonApplication_resumeURL(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HackathonApplication", field.Name)
 		},
@@ -1808,7 +1805,7 @@ func (ec *executionContext) fieldContext_Entity_findHackathonApplicationByID(ctx
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Entity_findHackathonApplicationByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1869,7 +1866,7 @@ func (ec *executionContext) fieldContext_Entity_findSponsorByID(ctx context.Cont
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Entity_findSponsorByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1930,7 +1927,7 @@ func (ec *executionContext) fieldContext_Entity_findUserByID(ctx context.Context
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Entity_findUserByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -2425,7 +2422,7 @@ func (ec *executionContext) fieldContext_Hackathon_sponsors(ctx context.Context,
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Hackathon_sponsors_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -2488,7 +2485,7 @@ func (ec *executionContext) fieldContext_Hackathon_events(ctx context.Context, f
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Hackathon_events_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -2619,7 +2616,7 @@ func (ec *executionContext) fieldContext_Hackathon_applications(ctx context.Cont
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Hackathon_applications_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -2906,8 +2903,8 @@ func (ec *executionContext) fieldContext_HackathonApplication_shareInfoWithSpons
 	return fc, nil
 }
 
-func (ec *executionContext) _HackathonApplication_resumeBase64(ctx context.Context, field graphql.CollectedField, obj *model.HackathonApplication) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HackathonApplication_resumeBase64(ctx, field)
+func (ec *executionContext) _HackathonApplication_resumeURL(ctx context.Context, field graphql.CollectedField, obj *model.HackathonApplication) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HackathonApplication_resumeURL(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2920,26 +2917,29 @@ func (ec *executionContext) _HackathonApplication_resumeBase64(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.HackathonApplication().ResumeBase64(rctx, obj)
+		return obj.ResumeURL, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_HackathonApplication_resumeBase64(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_HackathonApplication_resumeURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "HackathonApplication",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -3092,8 +3092,8 @@ func (ec *executionContext) fieldContext_HackathonApplicationConnection_applicat
 				return ec.fieldContext_HackathonApplication_whatDoYouWantToLearn(ctx, field)
 			case "shareInfoWithSponsors":
 				return ec.fieldContext_HackathonApplication_shareInfoWithSponsors(ctx, field)
-			case "resumeBase64":
-				return ec.fieldContext_HackathonApplication_resumeBase64(ctx, field)
+			case "resumeURL":
+				return ec.fieldContext_HackathonApplication_resumeURL(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HackathonApplication", field.Name)
 		},
@@ -3193,7 +3193,7 @@ func (ec *executionContext) fieldContext_Mutation_createHackathon(ctx context.Co
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createHackathon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3290,7 +3290,7 @@ func (ec *executionContext) fieldContext_Mutation_updateHackathon(ctx context.Co
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateHackathon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3369,7 +3369,7 @@ func (ec *executionContext) fieldContext_Mutation_deleteHackathon(ctx context.Co
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteHackathon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3448,7 +3448,7 @@ func (ec *executionContext) fieldContext_Mutation_acceptApplicant(ctx context.Co
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_acceptApplicant_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3527,7 +3527,7 @@ func (ec *executionContext) fieldContext_Mutation_denyApplicant(ctx context.Cont
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_denyApplicant_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3604,8 +3604,8 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 				return ec.fieldContext_HackathonApplication_whatDoYouWantToLearn(ctx, field)
 			case "shareInfoWithSponsors":
 				return ec.fieldContext_HackathonApplication_shareInfoWithSponsors(ctx, field)
-			case "resumeBase64":
-				return ec.fieldContext_HackathonApplication_resumeBase64(ctx, field)
+			case "resumeURL":
+				return ec.fieldContext_HackathonApplication_resumeURL(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HackathonApplication", field.Name)
 		},
@@ -3619,7 +3619,7 @@ func (ec *executionContext) fieldContext_Mutation_updateApplication(ctx context.
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateApplication_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3659,10 +3659,10 @@ func (ec *executionContext) _Mutation_applyToHackathon(ctx context.Context, fiel
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(bool); ok {
+		if data, ok := tmp.(string); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3674,9 +3674,9 @@ func (ec *executionContext) _Mutation_applyToHackathon(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_applyToHackathon(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3686,7 +3686,7 @@ func (ec *executionContext) fieldContext_Mutation_applyToHackathon(ctx context.C
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	defer func() {
@@ -3698,7 +3698,7 @@ func (ec *executionContext) fieldContext_Mutation_applyToHackathon(ctx context.C
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_applyToHackathon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3918,7 +3918,7 @@ func (ec *executionContext) fieldContext_Query_hackathons(ctx context.Context, f
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_hackathons_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3991,7 +3991,7 @@ func (ec *executionContext) fieldContext_Query_getHackathon(ctx context.Context,
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getHackathon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -4068,8 +4068,8 @@ func (ec *executionContext) fieldContext_Query_getApplication(ctx context.Contex
 				return ec.fieldContext_HackathonApplication_whatDoYouWantToLearn(ctx, field)
 			case "shareInfoWithSponsors":
 				return ec.fieldContext_HackathonApplication_shareInfoWithSponsors(ctx, field)
-			case "resumeBase64":
-				return ec.fieldContext_HackathonApplication_resumeBase64(ctx, field)
+			case "resumeURL":
+				return ec.fieldContext_HackathonApplication_resumeURL(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HackathonApplication", field.Name)
 		},
@@ -4083,7 +4083,7 @@ func (ec *executionContext) fieldContext_Query_getApplication(ctx context.Contex
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getApplication_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -4138,7 +4138,7 @@ func (ec *executionContext) fieldContext_Query__entities(ctx context.Context, fi
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query__entities_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -4260,7 +4260,7 @@ func (ec *executionContext) fieldContext_Query___type(ctx context.Context, field
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query___type_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -4753,8 +4753,8 @@ func (ec *executionContext) fieldContext_User_applications(ctx context.Context, 
 				return ec.fieldContext_HackathonApplication_whatDoYouWantToLearn(ctx, field)
 			case "shareInfoWithSponsors":
 				return ec.fieldContext_HackathonApplication_shareInfoWithSponsors(ctx, field)
-			case "resumeBase64":
-				return ec.fieldContext_HackathonApplication_resumeBase64(ctx, field)
+			case "resumeURL":
+				return ec.fieldContext_HackathonApplication_resumeURL(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HackathonApplication", field.Name)
 		},
@@ -6368,7 +6368,7 @@ func (ec *executionContext) fieldContext___Type_fields(ctx context.Context, fiel
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field___Type_fields_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -6556,7 +6556,7 @@ func (ec *executionContext) fieldContext___Type_enumValues(ctx context.Context, 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field___Type_enumValues_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -6727,7 +6727,7 @@ func (ec *executionContext) unmarshalInputHackathonApplicationInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"whyAttend", "whatDoYouWantToLearn", "shareInfoWithSponsors", "resume"}
+	fieldsInOrder := [...]string{"whyAttend", "whatDoYouWantToLearn", "shareInfoWithSponsors"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6761,15 +6761,6 @@ func (ec *executionContext) unmarshalInputHackathonApplicationInput(ctx context.
 				return it, err
 			}
 			it.ShareInfoWithSponsors = data
-		case "resume":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resume"))
-			data, err := ec.unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Resume = data
 		}
 	}
 
@@ -7619,39 +7610,11 @@ func (ec *executionContext) _HackathonApplication(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "resumeBase64":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._HackathonApplication_resumeBase64(ctx, field, obj)
-				return res
+		case "resumeURL":
+			out.Values[i] = ec._HackathonApplication_resumeURL(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
 			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9787,22 +9750,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
-	return res
-}
-
-func (ec *executionContext) unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (*graphql.Upload, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalUpload(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v *graphql.Upload) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalUpload(*v)
 	return res
 }
 

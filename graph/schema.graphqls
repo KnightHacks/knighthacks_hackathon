@@ -141,7 +141,6 @@ input HackathonApplicationInput {
     whyAttend: [String!]
     whatDoYouWantToLearn: [String!]
     shareInfoWithSponsors: Boolean
-    resume: Upload
 }
 
 enum ApplicationStatus {
@@ -155,7 +154,7 @@ type HackathonApplication @key(fields: "id") {
     whyAttend: [String!]!
     whatDoYouWantToLearn: [String!]!
     shareInfoWithSponsors: Boolean!
-    resumeBase64: String @goField(forceResolver: true)
+    resumeURL: String!
 }
 
 type Query {
@@ -174,5 +173,5 @@ type Mutation {
     denyApplicant(hackathonId: ID!, userId: ID!): Boolean! @hasRole(role: ADMIN)
 
     updateApplication(hackathonId: ID!, userId: ID!, input: HackathonApplicationInput!): HackathonApplication @hasRole(role: NORMAL) # will manually check if userId = the logged in user
-    applyToHackathon(hackathonId: ID!, input: HackathonApplicationInput!): Boolean! @hasRole(role: NORMAL)
+    applyToHackathon(hackathonId: ID!, input: HackathonApplicationInput!): String! @hasRole(role: NORMAL)
 }
