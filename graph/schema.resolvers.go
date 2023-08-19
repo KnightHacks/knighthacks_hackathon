@@ -204,7 +204,11 @@ func (r *mutationResolver) ApplyToHackathon(ctx context.Context, hackathonID str
 		return "", err
 	}
 
-	return r.AzureBlobClient.GetResumeURL(hackathonID, claims.UserID), nil
+	url, err := r.AzureBlobClient.CreatePreSignedURL(hackathonID, claims.UserID)
+	if err != nil {
+		return "", err
+	}
+	return url, nil
 }
 
 // CurrentHackathon is the resolver for the currentHackathon field.

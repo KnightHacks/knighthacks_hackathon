@@ -10,6 +10,8 @@ github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0/go.mod h1:2e8rMJtl2+
 github.com/AzureAD/microsoft-authentication-library-for-go v1.0.0 h1:OBhqkivkhkMqLPymWEppkm7vgPQY2XsHoEkaMQ0AdZY=
 github.com/KnightHacks/knighthacks_shared v0.0.0-20230816235545-cf33535810ff h1:EVfjG97uZ8SZs2Sg2tlDaUHqnEKQngZjutiiOJNQ1iU=
 github.com/KnightHacks/knighthacks_shared v0.0.0-20230816235545-cf33535810ff/go.mod h1:tj3wsHFnJxZlPqYoKIXy/KeiRp1UxJfUnXkAk2+HLlg=
+github.com/KnightHacks/knighthacks_shared v0.0.0-20230819073527-926fabb62221 h1:5JSRsTE6zYq6wZGXvHFe/0WUlrVerTnSaVMvUKfdpz0=
+github.com/KnightHacks/knighthacks_shared v0.0.0-20230819073527-926fabb62221/go.mod h1:tj3wsHFnJxZlPqYoKIXy/KeiRp1UxJfUnXkAk2+HLlg=
 github.com/agnivade/levenshtein v1.1.1 h1:QY8M92nrzkmr798gCo3kmMyqXFzdQVpxLlGPRBij0P8=
 github.com/agnivade/levenshtein v1.1.1/go.mod h1:veldBMzWxcCG2ZvUTKD2kJNRdCk5hVbJomOvKkmgYbo=
 github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883 h1:bvNMNQO63//z+xNgfBlViaCIJKLlCJ6/fmUseuG0wVQ=
